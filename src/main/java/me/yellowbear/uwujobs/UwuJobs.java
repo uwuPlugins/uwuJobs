@@ -17,8 +17,10 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.plaf.nimbus.State;
 import java.io.File;
 import java.io.IOException;
+import java.sql.*;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
 
@@ -30,7 +32,26 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
     public void onEnable() {
         // Plugin startup logic
         getServer().getPluginManager().registerEvents(new UwuJobs(), this);
-        createHistory();
+//        createHistory();
+
+        // Create database folder
+        try {
+            File f = new File("plugins/uwuJobs");
+            f.mkdir();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+
+        try (Connection conn = this.connect()){
+            Statement statement = conn.createStatement();
+            for (Job job : Job.values()) {
+                statement.execute(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, level INT, next INT)", job.name().toLowerCase()));
+            }
+            statement.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         Bukkit.getScheduler().runTaskTimerAsynchronously(this,() -> {
             try {
                 recalculateLevels();
@@ -45,38 +66,32 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         // Plugin shutdown logic
     }
 
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) throws IOException {
-        if (playerData.getKeys(false).contains(event.getPlayer().getName())) {
-            System.out.println("Player data loaded");
-        } else {
-            for (Job job : Job.values()) {
-                playerData.set(event.getPlayer().getName()+"."+job.name()+".level", 0);
-                playerData.set(event.getPlayer().getName()+"."+job.name()+".xp", 0);
-                playerData.set(event.getPlayer().getName()+"."+job.name()+".next", calculateLevelXp(1));
-            }
+    private Connection connect() {
+        Connection conn;
+        try {
+            conn = DriverManager.getConnection("jdbc:sqlite:plugins/uwuJobs/uwu.db");
+            return conn;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        playerData.save(playerDataFile);
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) throws IOException, SQLException {
+        try (Connection conn = this.connect()) {
+            Statement statement = conn.createStatement();
+            for (Job job : Job.values()) {
+                statement.execute(String.format("insert into %s (id, xp, level, next) values ('%s', %s, %s, %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 0, 1, calculateLevelXp(1)));
+            }
+            statement.close();
+        } catch (SQLException e) {
+            System.err.println(e);
+        }
     }
 
     @EventHandler
     public void onBlockMined(BlockBreakEvent event) throws IOException {
         handleBlockMined(event);
-    }
-
-    private void createHistory() {
-        playerDataFile = new File(getDataFolder(), "data.yml");
-        if (!playerDataFile.exists()) {
-            playerDataFile.getParentFile().mkdirs();
-            saveResource("data.yml", false);
-        }
-
-        playerData = new YamlConfiguration();
-        try {
-            playerData.load(playerDataFile);
-        } catch (IOException | InvalidConfigurationException e) {
-            e.printStackTrace();
-        }
     }
 
     private void handleBlockMined(BlockBreakEvent event) throws IOException {
@@ -92,34 +107,47 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
     }
 
     private void awardXp(Player player, int amount, Job job) throws IOException {
-        int xp = playerData.getInt(player.getName()+"."+job.name()+".xp");
-        String pathString = "."+job.name();
-        String completePath = player.getName()+pathString+".xp";
-        playerData.set(completePath, playerData.getInt(completePath)+amount);
-        playerData.save(playerDataFile);
+        int xp, next = 0;
+        try (Connection conn = this.connect()) {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(String.format("select xp, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
+            xp = rs.getInt("xp");
+            next = rs.getInt("next");
+            statement.execute(String.format("update %s set xp = %s where id = '%s'", job.name().toLowerCase(), xp + amount, player.getUniqueId()));
+            statement.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         player.sendMessage(
                 ChatMessageType.ACTION_BAR,
-                new TextComponent(job.name() + " " + String.valueOf(xp+amount) + "/" + playerData.getInt(player.getName()+"."+job.name()+".next") + "XP")
+                new TextComponent(job.name() + " " + String.valueOf(xp+amount) + "/" + next + "XP")
         );
     }
 
+    // TODO: Bylo by lepsi tohle zlepsit
     private int calculateLevelXp(int n) {
         return (int) Math.round(100 * (Math.pow(1.05, n)) - 50);
-    } //TODO: trochu to nevychazi
+    }
 
     private void recalculateLevels() throws IOException {
         for (Player player : getServer().getOnlinePlayers()) {
             for (Job job : Job.values()) {
-                int xp = playerData.getInt(player.getName()+"."+job.name()+".xp");
-                int next = playerData.getInt(player.getName()+"."+job.name()+".next");
-                int level = playerData.getInt(player.getName()+"."+job.name()+".level");
-                level += 1;
-                if (xp >= next) {
-                    playerData.set(player.getName()+"."+job.name()+".level", level);
-                    playerData.set(player.getName()+"."+job.name()+".next", xp + calculateLevelXp(level));
+                try (Connection conn = this.connect()) {
+                    int xp, level, next = 0;
+                    Statement statement = conn.createStatement();
+                    ResultSet rs = statement.executeQuery(String.format("select xp, level, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
+                    xp = rs.getInt("xp");
+                    level = rs.getInt("level");
+                    next = rs.getInt("next");
+                    level++;
+                    if (xp >= next) {
+                        statement.executeUpdate(String.format("update %s set level = %s, next = %s where id = '%s'", job.name().toLowerCase(), level, xp + calculateLevelXp(level), player.getUniqueId()));
+                    }
+                    statement.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
             }
-            playerData.save(playerDataFile);
         }
     }
 
