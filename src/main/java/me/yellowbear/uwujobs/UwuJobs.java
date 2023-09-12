@@ -3,7 +3,6 @@ package me.yellowbear.uwujobs;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -16,15 +15,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.text.html.parser.Parser;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.logging.Level;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
 
@@ -41,7 +35,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
             try {
                 recalculateLevels();
             } catch (IOException e) {
-
+                e.printStackTrace();
             }
         },100,200);
     }
@@ -59,7 +53,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
             for (Job job : Job.values()) {
                 playerData.set(event.getPlayer().getName()+"."+job.name()+".level", 0);
                 playerData.set(event.getPlayer().getName()+"."+job.name()+".xp", 0);
-                playerData.set(event.getPlayer().getName()+"."+job.name()+".next", calculateLevelXp(100,1.05,1));
+                playerData.set(event.getPlayer().getName()+"."+job.name()+".next", calculateLevelXp(1));
             }
         }
         playerData.save(playerDataFile);
@@ -109,24 +103,20 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         );
     }
 
-    private int calculateLevelXp(int a, double b, int n) {
-        return ((int) ((a * (Math.pow(b, n))) - 50));
+    private int calculateLevelXp(int n) {
+        return (int) Math.round(100 * (Math.pow(1.05, n)) - 50);
     } //TODO: trochu to nevychazi
 
     private void recalculateLevels() throws IOException {
         for (Player player : getServer().getOnlinePlayers()) {
             for (Job job : Job.values()) {
                 int xp = playerData.getInt(player.getName()+"."+job.name()+".xp");
-                int sum = 0;
-                for (int i = 0; i < 201; i++) {
-                    int next = calculateLevelXp(100, 1.05, i);
-                    sum += next;
-                    if (sum > xp) {
-                        playerData.set(player.getName()+"."+job.name()+".level", i);
-                        playerData.set(player.getName()+"."+job.name()+".next", sum);
-                        break;
-                    }
-
+                int next = playerData.getInt(player.getName()+"."+job.name()+".next");
+                int level = playerData.getInt(player.getName()+"."+job.name()+".level");
+                level += 1;
+                if (xp >= next) {
+                    playerData.set(player.getName()+"."+job.name()+".level", level);
+                    playerData.set(player.getName()+"."+job.name()+".next", xp + calculateLevelXp(level));
                 }
             }
             playerData.save(playerDataFile);
