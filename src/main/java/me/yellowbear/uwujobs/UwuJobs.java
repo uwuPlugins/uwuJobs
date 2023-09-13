@@ -43,15 +43,6 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-//        createHistory();
-
-        // Create database folder
-        try {
-            File f = new File("plugins/uwuJobs");
-            f.mkdir();
-        } catch(Exception e){
-            e.printStackTrace();
-        }
 
         try (Connection conn = this.connect()){
             Statement statement = conn.createStatement();
@@ -80,7 +71,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) throws IOException, SQLException {
+    public void onPlayerJoin(PlayerJoinEvent event) {
         try (Connection conn = this.connect()) {
             Statement statement = conn.createStatement();
             for (Job job : Job.values()) {
