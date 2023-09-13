@@ -51,14 +51,6 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this,() -> {
-            try {
-                recalculateLevels();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        },100,200);
     }
 
     @Override
@@ -118,6 +110,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        recalculateLevels(player, job);
         player.sendMessage(
                 ChatMessageType.ACTION_BAR,
                 new TextComponent(job.name() + " " + String.valueOf(xp+amount) + "/" + next + "XP")
@@ -129,9 +122,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         return (int) Math.round(100 * (Math.pow(1.05, n)) - 50);
     }
 
-    private void recalculateLevels() throws IOException {
-        for (Player player : getServer().getOnlinePlayers()) {
-            for (Job job : Job.values()) {
+    private void recalculateLevels(Player player, Job job) throws IOException {
                 try (Connection conn = this.connect()) {
                     int xp, level, next = 0;
                     Statement statement = conn.createStatement();
@@ -147,8 +138,6 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
-            }
-        }
     }
 
     private enum Job {
