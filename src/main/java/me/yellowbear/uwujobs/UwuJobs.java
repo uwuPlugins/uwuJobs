@@ -1,28 +1,21 @@
 package me.yellowbear.uwujobs;
 
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandMap;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 
-import javax.swing.plaf.nimbus.State;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import static me.yellowbear.uwujobs.Level.awardXp;
+import static me.yellowbear.uwujobs.Level.calculateLevelXp;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
 
@@ -93,47 +86,6 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         }
     }
 
-    private void awardXp(Player player, int amount, Job job) throws IOException {
-        int xp, next = 0;
-        try (Connection conn = DatabaseConnector.connect()) {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(String.format("select xp, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
-            xp = rs.getInt("xp");
-            next = rs.getInt("next");
-            statement.execute(String.format("update %s set xp = %s where id = '%s'", job.name().toLowerCase(), xp + amount, player.getUniqueId()));
-            statement.close();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        recalculateLevels(player, job);
-        player.sendMessage(
-                ChatMessageType.ACTION_BAR,
-                new TextComponent(job.name() + " " + String.valueOf(xp+amount) + "/" + next + "XP")
-        );
-    }
-
-    // TODO: Bylo by lepsi tohle zlepsit
-    private int calculateLevelXp(int n) {
-        return (int) Math.round(100 * (Math.pow(1.05, n)) - 50);
-    }
-
-    private void recalculateLevels(Player player, Job job) throws IOException {
-                try (Connection conn = DatabaseConnector.connect()) {
-                    int xp, level, next = 0;
-                    Statement statement = conn.createStatement();
-                    ResultSet rs = statement.executeQuery(String.format("select xp, level, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
-                    xp = rs.getInt("xp");
-                    level = rs.getInt("level");
-                    next = rs.getInt("next");
-                    level++;
-                    if (xp >= next) {
-                        statement.executeUpdate(String.format("update %s set level = %s, next = %s where id = '%s'", job.name().toLowerCase(), level, xp + calculateLevelXp(level), player.getUniqueId()));
-                    }
-                    statement.close();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-    }
 
 
 }
