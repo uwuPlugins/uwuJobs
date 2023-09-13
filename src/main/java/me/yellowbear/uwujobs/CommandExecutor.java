@@ -6,6 +6,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import me.yellowbear.uwujobs.UwuJobs;
 
 import java.lang.reflect.Field;
 
@@ -19,8 +20,28 @@ public class CommandExecutor {
         commandMap.register("jobs", new Command("jobs") {
             @Override
             public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] args) {
-                commandSender.sendMessage(ChatColor.LIGHT_PURPLE.toString() + "uwuJobs v1.0" + ChatColor.AQUA + " by " + ChatColor.LIGHT_PURPLE + "yellowbear" + ChatColor.AQUA + " & " + ChatColor.LIGHT_PURPLE + "mapetr");
-                //zapomnel jsem jak ziskat informace o pluginu, mohlo by se nekdy dodelat
+                if (args.length == 0) {
+                    commandSender.sendMessage(
+                            ChatColor.AQUA + "Running "
+                            + ChatColor.LIGHT_PURPLE + "uwuJobs"
+                            + ChatColor.AQUA + " version "
+                            + ChatColor.LIGHT_PURPLE + "1.0"
+                            + ChatColor.AQUA + " by "
+                            + ChatColor.LIGHT_PURPLE + "yellowbear"
+                            + ChatColor.AQUA + " & "
+                            + ChatColor.LIGHT_PURPLE + "mapetr"
+                            + "\n"
+                    );
+
+                    for (UwuJobs.Job job : UwuJobs.Job.values()) {
+                        commandSender.sendMessage(ChatColor.AQUA + "You have level"
+                                + ChatColor.LIGHT_PURPLE + "tady level"
+                                + ChatColor.AQUA + " in profession "
+                                + ChatColor.LIGHT_PURPLE + job.name()
+                        );
+                    }
+                    //zapomnel jsem jak ziskat informace o pluginu, mohlo by se nekdy dodelat
+                }
                 return true;
             }
         });
