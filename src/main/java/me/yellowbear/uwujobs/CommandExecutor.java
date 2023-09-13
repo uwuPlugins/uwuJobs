@@ -42,7 +42,7 @@ public class CommandExecutor {
 
                     try (Connection conn = DatabaseConnector.connect()) {
                         Statement statement = conn.createStatement();
-                        for (UwuJobs.Job job : UwuJobs.Job.values()) {
+                        for (Job job : Job.values()) {
                             ResultSet rs = statement.executeQuery(String.format("SELECT level FROM %s WHERE id = '%s'", job.name().toLowerCase(), player.getUniqueId().toString()));
                             commandSender.sendMessage(ChatColor.AQUA + "You have level "
                                     + ChatColor.LIGHT_PURPLE + rs.getInt("level")
