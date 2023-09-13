@@ -5,6 +5,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.plaf.nimbus.State;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.sql.*;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
@@ -27,11 +29,19 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
     private static File playerDataFile;
     private static FileConfiguration playerData;
     private BlockSets blockSets = new BlockSets();
+    public UwuJobs() throws NoSuchFieldException, IllegalAccessException {
+        new me.yellowbear.uwujobs.CommandExecutor();
+    }
+
 
     @Override
     public void onEnable() {
         // Plugin startup logic
-        getServer().getPluginManager().registerEvents(new UwuJobs(), this);
+        try {
+            getServer().getPluginManager().registerEvents(new UwuJobs(), this);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 //        createHistory();
 
         // Create database folder
@@ -144,12 +154,5 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         MINER,
         LUMBER,
         FARMER
-    }
-
-    @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-
-
-        return super.onCommand(sender, command, label, args);
     }
 }
