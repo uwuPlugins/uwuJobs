@@ -28,7 +28,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
     private static File playerDataFile;
     private static FileConfiguration playerData;
-    private BlockSets blockSets = new BlockSets();
+    private final BlockSets blockSets = new BlockSets(this.getConfig());
     public UwuJobs() throws NoSuchFieldException, IllegalAccessException {
         new me.yellowbear.uwujobs.CommandExecutor();
     }
@@ -36,6 +36,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
         // Plugin startup logic
         try {
             getServer().getPluginManager().registerEvents(new UwuJobs(), this);
@@ -101,10 +102,11 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
             awardXp(event.getPlayer(), blockSets.minerBlocks.get(event.getBlock().getType()), Job.MINER);
         }
         if (blockSets.lumberBlocks.get(event.getBlock().getType()) != null) {
-            awardXp(event.getPlayer(), blockSets.minerBlocks.get(event.getBlock().getType()), Job.LUMBER);
+            awardXp(event.getPlayer(), blockSets.lumberBlocks.get(event.getBlock().getType()), Job.LUMBER);
         }
+        // TODO: Implement age of the crop check
         if (blockSets.farmerBlocks.get(event.getBlock().getType()) != null) {
-            awardXp(event.getPlayer(), blockSets.minerBlocks.get(event.getBlock().getType()), Job.FARMER);
+            awardXp(event.getPlayer(), blockSets.farmerBlocks.get(event.getBlock().getType()), Job.FARMER);
         }
     }
 
