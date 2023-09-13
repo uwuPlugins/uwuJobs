@@ -7,7 +7,6 @@ import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import me.yellowbear.uwujobs.UwuJobs;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -42,7 +41,7 @@ public class CommandExecutor {
 
                     try (Connection conn = DatabaseConnector.connect()) {
                         Statement statement = conn.createStatement();
-                        for (Job job : Job.values()) {
+                        for (Jobs job : Jobs.values()) {
                             ResultSet rs = statement.executeQuery(String.format("SELECT level FROM %s WHERE id = '%s'", job.name().toLowerCase(), player.getUniqueId().toString()));
                             commandSender.sendMessage(ChatColor.AQUA + "You have level "
                                     + ChatColor.LIGHT_PURPLE + rs.getInt("level")
