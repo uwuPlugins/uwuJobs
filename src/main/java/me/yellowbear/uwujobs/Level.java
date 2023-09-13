@@ -4,14 +4,13 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Level {
-    public static void awardXp(Player player, int amount, Job job) {
+    public static void awardXp(Player player, int amount, Jobs job) {
         int xp, next;
         try (Connection conn = DatabaseConnector.connect()) {
             Statement statement = conn.createStatement();
@@ -35,7 +34,7 @@ public class Level {
         return (int) Math.round(100 * (Math.pow(1.05, n)) - 50);
     }
 
-    public static void recalculateLevels(Player player, Job job) {
+    public static void recalculateLevels(Player player, Jobs job) {
         try (Connection conn = DatabaseConnector.connect()) {
             int xp, level, next;
             Statement statement = conn.createStatement();
