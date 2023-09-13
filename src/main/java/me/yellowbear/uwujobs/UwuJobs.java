@@ -135,9 +135,5 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
                 }
     }
 
-    public enum Job {
-        MINER,
-        LUMBER,
-        FARMER
-    }
+
 }

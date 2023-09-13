@@ -20,25 +20,25 @@ public class BlockSets {
     }
 
     private void loadConfig(FileConfiguration file) {
-        ConfigurationSection miner = file.getConfigurationSection(UwuJobs.Job.MINER.name());
-        ConfigurationSection lumber = file.getConfigurationSection(UwuJobs.Job.LUMBER.name());
-        ConfigurationSection farmer = file.getConfigurationSection(UwuJobs.Job.FARMER.name());
+        ConfigurationSection miner = file.getConfigurationSection(Job.MINER.name());
+        ConfigurationSection lumber = file.getConfigurationSection(Job.LUMBER.name());
+        ConfigurationSection farmer = file.getConfigurationSection(Job.FARMER.name());
 
         if (miner != null) {
             for (String key : miner.getKeys(true)) {
-                minerBlocks.put(Material.getMaterial(key), file.getInt(UwuJobs.Job.MINER.name()+"." + key));
+                minerBlocks.put(Material.getMaterial(key), file.getInt(Job.MINER.name()+"." + key));
             }
         }
 
         if (lumber != null) {
             for (String key : lumber.getKeys(true)) {
-                lumberBlocks.put(Material.getMaterial(key), file.getInt(UwuJobs.Job.LUMBER.name()+"." + key));
+                lumberBlocks.put(Material.getMaterial(key), file.getInt(Job.LUMBER.name()+"." + key));
             }
         }
 
         if (farmer != null) {
             for (String key : farmer.getKeys(true)) {
-                farmerBlocks.put(Material.getMaterial(key), file.getInt(UwuJobs.Job.FARMER.name()+"." + key));
+                farmerBlocks.put(Material.getMaterial(key), file.getInt(Job.FARMER.name()+"." + key));
             }
         }
     }
