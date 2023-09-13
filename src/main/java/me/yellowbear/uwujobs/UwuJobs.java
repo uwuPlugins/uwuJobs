@@ -43,17 +43,8 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-//        createHistory();
 
-        // Create database folder
-        try {
-            File f = new File("plugins/uwuJobs");
-            f.mkdir();
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-
-        try (Connection conn = this.connect()){
+        try (Connection conn = DatabaseConnector.connect()){
             Statement statement = conn.createStatement();
             for (Job job : Job.values()) {
                 statement.execute(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, level INT, next INT)", job.name().toLowerCase()));
@@ -69,19 +60,11 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         // Plugin shutdown logic
     }
 
-    private Connection connect() {
-        Connection conn;
-        try {
-            conn = DriverManager.getConnection("jdbc:sqlite:plugins/uwuJobs/uwu.db");
-            return conn;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) throws IOException, SQLException {
-        try (Connection conn = this.connect()) {
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        try (Connection conn = DatabaseConnector.connect()) {
             Statement statement = conn.createStatement();
             for (Job job : Job.values()) {
                 statement.execute(String.format("insert into %s (id, xp, level, next) values ('%s', %s, %s, %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 0, 1, calculateLevelXp(1)));
@@ -112,7 +95,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
     private void awardXp(Player player, int amount, Job job) throws IOException {
         int xp, next = 0;
-        try (Connection conn = this.connect()) {
+        try (Connection conn = DatabaseConnector.connect()) {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(String.format("select xp, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
             xp = rs.getInt("xp");
@@ -135,7 +118,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
     }
 
     private void recalculateLevels(Player player, Job job) throws IOException {
-                try (Connection conn = this.connect()) {
+                try (Connection conn = DatabaseConnector.connect()) {
                     int xp, level, next = 0;
                     Statement statement = conn.createStatement();
                     ResultSet rs = statement.executeQuery(String.format("select xp, level, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
