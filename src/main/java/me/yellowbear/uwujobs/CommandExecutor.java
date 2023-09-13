@@ -5,10 +5,15 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import me.yellowbear.uwujobs.UwuJobs;
 
 import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class CommandExecutor {
     final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -20,7 +25,8 @@ public class CommandExecutor {
         commandMap.register("jobs", new Command("jobs") {
             @Override
             public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] args) {
-                if (args.length == 0) {
+                if (args.length == 0 && commandSender instanceof Player) {
+                    Player player = (Player) commandSender;
                     commandSender.sendMessage(
                             ChatColor.AQUA + "Running "
                             + ChatColor.LIGHT_PURPLE + "uwuJobs"
@@ -33,12 +39,19 @@ public class CommandExecutor {
                             + "\n"
                     );
 
-                    for (UwuJobs.Job job : UwuJobs.Job.values()) {
-                        commandSender.sendMessage(ChatColor.AQUA + "You have level"
-                                + ChatColor.LIGHT_PURPLE + "tady level"
-                                + ChatColor.AQUA + " in profession "
-                                + ChatColor.LIGHT_PURPLE + job.name()
-                        );
+
+                    try (Connection conn = DatabaseConnector.connect()) {
+                        Statement statement = conn.createStatement();
+                        for (UwuJobs.Job job : UwuJobs.Job.values()) {
+                            ResultSet rs = statement.executeQuery(String.format("SELECT level FROM %s WHERE id = '%s'", job.name().toLowerCase(), player.getUniqueId().toString()));
+                            commandSender.sendMessage(ChatColor.AQUA + "You have level "
+                                    + ChatColor.LIGHT_PURPLE + rs.getInt("level")
+                                    + ChatColor.AQUA + " in profession "
+                                    + ChatColor.LIGHT_PURPLE + job.name()
+                            );
+                        }
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
                     }
                     //zapomnel jsem jak ziskat informace o pluginu, mohlo by se nekdy dodelat
                 }
