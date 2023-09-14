@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.UUID;
 
 public class CommandExecutor {
     final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -63,7 +64,7 @@ public class CommandExecutor {
                                 while (rs.next()) {
                                     commandSender.sendMessage(
                                                         ChatColor.AQUA + String.valueOf(i) + ". "
-                                                        + ChatColor.LIGHT_PURPLE + rs.getString("id")
+                                                        + ChatColor.LIGHT_PURPLE + Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("id"))).getName()
                                                                 + ChatColor.AQUA + ", level "
                                                         + ChatColor.LIGHT_PURPLE + String.valueOf(rs.getInt("level"))
                                     );
