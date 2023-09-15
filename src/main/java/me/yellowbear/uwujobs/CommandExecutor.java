@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class CommandExecutor {
@@ -56,7 +57,9 @@ public class CommandExecutor {
                         }
                         //zapomnel jsem jak ziskat informace o pluginu, mohlo by se nekdy dodelat
                     } else {
-                        if (args[0].equalsIgnoreCase("top")) {
+                        if (args[0].equalsIgnoreCase("top") && Arrays.stream(Jobs.values()).anyMatch(job -> {
+                            return job.name().equalsIgnoreCase(args[1]);
+                        })) {
                             try (Connection conn = DatabaseConnector.connect()) {
                                 Statement statement = conn.createStatement();
                                 ResultSet rs = statement.executeQuery(String.format("SELECT id, level FROM miner ORDER BY level DESC LIMIT 5;"));
