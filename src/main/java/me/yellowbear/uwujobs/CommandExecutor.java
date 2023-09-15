@@ -62,7 +62,7 @@ public class CommandExecutor {
                         })) {
                             try (Connection conn = DatabaseConnector.connect()) {
                                 Statement statement = conn.createStatement();
-                                ResultSet rs = statement.executeQuery(String.format("SELECT id, xp FROM miner ORDER BY xp DESC LIMIT 5;"));
+                                ResultSet rs = statement.executeQuery(String.format("SELECT id, xp FROM "+args[1].toLowerCase()+" ORDER BY xp DESC LIMIT 5;"));
                                 int i = 1;
                                 while (rs.next()) {
                                     commandSender.sendMessage(
