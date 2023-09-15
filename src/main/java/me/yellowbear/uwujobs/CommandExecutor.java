@@ -62,14 +62,14 @@ public class CommandExecutor {
                         })) {
                             try (Connection conn = DatabaseConnector.connect()) {
                                 Statement statement = conn.createStatement();
-                                ResultSet rs = statement.executeQuery(String.format("SELECT id, level FROM miner ORDER BY level DESC LIMIT 5;"));
+                                ResultSet rs = statement.executeQuery(String.format("SELECT id, xp FROM miner ORDER BY xp DESC LIMIT 5;"));
                                 int i = 1;
                                 while (rs.next()) {
                                     commandSender.sendMessage(
                                                         ChatColor.AQUA + String.valueOf(i) + ". "
                                                         + ChatColor.LIGHT_PURPLE + Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("id"))).getName()
-                                                                + ChatColor.AQUA + ", level "
-                                                        + ChatColor.LIGHT_PURPLE + String.valueOf(rs.getInt("level"))
+                                                                + ChatColor.AQUA + ", xp "
+                                                        + ChatColor.LIGHT_PURPLE + String.valueOf(rs.getInt("xp"))
                                     );
                                     i++;
                                 }
