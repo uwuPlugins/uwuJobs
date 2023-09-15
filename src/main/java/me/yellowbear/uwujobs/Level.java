@@ -17,38 +17,27 @@ public class Level {
             ResultSet rs = statement.executeQuery(String.format("select xp, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
             xp = rs.getInt("xp");
             next = rs.getInt("next");
-            statement.execute(String.format("update %s set xp = %s where id = '%s'", job.name().toLowerCase(), xp + amount, player.getUniqueId()));
+            xp += amount;
+            if (xp >= next) {
+                next = getNextXp(xp);
+            }
+            statement.execute(String.format("update %s set xp = %s, next = %s where id = '%s'", job.name().toLowerCase(), xp, next, player.getUniqueId()));
             statement.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        recalculateLevels(player, job);
         player.sendMessage(
                 ChatMessageType.ACTION_BAR,
-                new TextComponent(job.name() + " " + (xp + amount) + "/" + next + "XP")
+                new TextComponent(job.name() + " " + xp + "/" + next + "XP")
         );
     }
 
-    // TODO: Bylo by lepsi tohle zlepsit
-    public static int calculateLevelXp(int n) {
-        return (int) Math.round(100 * (Math.pow(1.05, n)) - 50);
+    public static int getNextXp(int xp) {
+        int level = getLevel(xp)+1;
+        return (int) ((level*level)/0.1);
     }
 
-    public static void recalculateLevels(Player player, Jobs job) {
-        try (Connection conn = DatabaseConnector.connect()) {
-            int xp, level, next;
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(String.format("select xp, level, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
-            xp = rs.getInt("xp");
-            level = rs.getInt("level");
-            next = rs.getInt("next");
-            level++;
-            if (xp >= next) {
-                statement.executeUpdate(String.format("update %s set level = %s, next = %s where id = '%s'", job.name().toLowerCase(), level, xp + calculateLevelXp(level), player.getUniqueId()));
-            }
-            statement.close();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public static int getLevel(int xp) {
+        return (int) Math.sqrt(xp*0.1);
     }
 }

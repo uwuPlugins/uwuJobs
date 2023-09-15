@@ -14,6 +14,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import static me.yellowbear.uwujobs.Level.getLevel;
+
 public class CommandExecutor {
     final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
 
@@ -42,9 +44,9 @@ public class CommandExecutor {
                     try (Connection conn = DatabaseConnector.connect()) {
                         Statement statement = conn.createStatement();
                         for (Jobs job : Jobs.values()) {
-                            ResultSet rs = statement.executeQuery(String.format("SELECT level FROM %s WHERE id = '%s'", job.name().toLowerCase(), player.getUniqueId().toString()));
+                            ResultSet rs = statement.executeQuery(String.format("SELECT xp FROM %s WHERE id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
                             commandSender.sendMessage(ChatColor.AQUA + "You have level "
-                                    + ChatColor.LIGHT_PURPLE + rs.getInt("level")
+                                    + ChatColor.LIGHT_PURPLE + getLevel(rs.getInt("xp"))
                                     + ChatColor.AQUA + " in profession "
                                     + ChatColor.LIGHT_PURPLE + job.name()
                             );

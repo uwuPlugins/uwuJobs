@@ -14,7 +14,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static me.yellowbear.uwujobs.Level.calculateLevelXp;
+import static me.yellowbear.uwujobs.Level.getNextXp;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
 
@@ -39,7 +39,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         try (Connection conn = DatabaseConnector.connect()){
             Statement statement = conn.createStatement();
             for (Jobs job : Jobs.values()) {
-                statement.execute(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, level INT, next INT)", job.name().toLowerCase()));
+                statement.execute(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)", job.name().toLowerCase()));
             }
             statement.close();
         } catch (SQLException e) {
@@ -52,14 +52,12 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         // Plugin shutdown logic
     }
 
-
-
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         try (Connection conn = DatabaseConnector.connect()) {
             Statement statement = conn.createStatement();
             for (Jobs job : Jobs.values()) {
-                statement.execute(String.format("insert into %s (id, xp, level, next) values ('%s', %s, %s, %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 0, 1, calculateLevelXp(1)));
+                statement.execute(String.format("insert into %s (id, xp, next) values ('%s', %s, %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1, getNextXp(1)));
             }
             statement.close();
         } catch (SQLException e) {
