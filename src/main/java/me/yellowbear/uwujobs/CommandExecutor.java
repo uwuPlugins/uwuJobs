@@ -16,6 +16,8 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.UUID;
 
+import static me.yellowbear.uwujobs.Level.getLevel;
+
 public class CommandExecutor {
     final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
 
@@ -40,7 +42,6 @@ public class CommandExecutor {
                                 + ChatColor.LIGHT_PURPLE + "mapetr"
                                 + "\n"
                         );
-
 
                         try (Connection conn = DatabaseConnector.connect()) {
                             Statement statement = conn.createStatement();
