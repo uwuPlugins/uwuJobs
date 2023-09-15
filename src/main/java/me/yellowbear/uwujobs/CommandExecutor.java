@@ -56,7 +56,7 @@ public class CommandExecutor {
                             throw new RuntimeException(e);
                         }
                         //zapomnel jsem jak ziskat informace o pluginu, mohlo by se nekdy dodelat
-                    } else {
+                    } else if (args.length == 2){
                         if (args[0].equalsIgnoreCase("top") && Arrays.stream(Jobs.values()).anyMatch(job -> {
                             return job.name().equalsIgnoreCase(args[1]);
                         })) {
