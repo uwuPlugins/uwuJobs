@@ -49,14 +49,14 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        try (Connection conn = DatabaseConnector.connect()) {
-            Statement statement = conn.createStatement();
-            for (Jobs job : Jobs.values()) {
+        for (Jobs job : Jobs.values()) {
+            try (Connection conn = DatabaseConnector.connect()) {
+                Statement statement = conn.createStatement();
                 statement.execute(String.format("insert into %s (id, xp, next) values ('%s', %s, %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1, getNextXp(1)));
-            }
-            statement.close();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+                statement.close();
+            } catch (SQLException e) {
+                //player is already registered with this job
+                }
         }
     }
 
