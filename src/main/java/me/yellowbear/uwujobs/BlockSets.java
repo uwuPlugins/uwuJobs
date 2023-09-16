@@ -8,9 +8,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BlockSets {
-    public Map<Material, Integer> minerBlocks = new HashMap<>();
-    public Map<Material, Integer> lumberBlocks = new HashMap<>();
-    public Map<Material, Integer> farmerBlocks = new HashMap<>();
+    public Map<Jobs, Map<Material, Integer>> jobsMap = new HashMap<>();
+    private Map<Material, Integer> minerBlocks = new HashMap<>();
+    private Map<Material, Integer> lumberBlocks = new HashMap<>();
+    private Map<Material, Integer> farmerBlocks = new HashMap<>();
 
     public BlockSets(FileConfiguration file) {
         loadConfig(file);
@@ -38,5 +39,10 @@ public class BlockSets {
                 farmerBlocks.put(Material.getMaterial(key), file.getInt(Jobs.FARMER.name()+"." + key));
             }
         }
+
+        jobsMap.put(Jobs.MINER, minerBlocks);
+        jobsMap.put(Jobs.LUMBER, lumberBlocks);
+        jobsMap.put(Jobs.FARMER, farmerBlocks);
+
     }
 }
