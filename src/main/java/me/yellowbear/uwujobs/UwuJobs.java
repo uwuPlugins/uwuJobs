@@ -1,14 +1,12 @@
 package me.yellowbear.uwujobs;
 
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -17,9 +15,6 @@ import java.sql.Statement;
 import static me.yellowbear.uwujobs.Level.getNextXp;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
-
-    private static File playerDataFile;
-    private static FileConfiguration playerData;
     private final BlockSets blockSets = new BlockSets(this.getConfig());
     public UwuJobs() throws NoSuchFieldException, IllegalAccessException {
         new me.yellowbear.uwujobs.CommandExecutor();
