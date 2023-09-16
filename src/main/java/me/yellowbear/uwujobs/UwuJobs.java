@@ -56,7 +56,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
             }
             statement.close();
         } catch (SQLException e) {
-            System.err.println(e);
+            throw new RuntimeException(e);
         }
     }
 
