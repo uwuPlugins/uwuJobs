@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashSet;
+import java.util.Set;
 
 import static me.yellowbear.uwujobs.Level.getNextXp;
 
@@ -58,6 +60,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
                 //player is already registered with this job
                 }
         }
+        ScoreboardController controller = new ScoreboardController(event.getPlayer(), new String[]{"","", ""});
     }
 
     @EventHandler
