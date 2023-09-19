@@ -17,6 +17,7 @@ public class ScoreboardController {
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         objective.setDisplayName(ChatColor.LIGHT_PURPLE + "uwuJobs");
         for (int i = 0; i < contents.length; i++) {
+            System.out.println(contents[i] + " #" + i);
             Score score = objective.getScore(contents[i]);
             score.setScore(contents.length-i);
         }

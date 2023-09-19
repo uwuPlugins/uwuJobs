@@ -1,5 +1,7 @@
 package me.yellowbear.uwujobs;
 
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -60,7 +62,13 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
                 //player is already registered with this job
                 }
         }
-        ScoreboardController controller = new ScoreboardController(event.getPlayer(), new String[]{"","", ""});
+        /*String[] board = new String[] {
+          "my",
+          "awesome" ,
+          "scoreboard",
+          ":3"
+        };
+        ScoreboardController controller = new ScoreboardController(event.getPlayer(), board);*/
     }
 
     @EventHandler
