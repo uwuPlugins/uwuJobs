@@ -1,7 +1,9 @@
 package me.yellowbear.uwujobs;
 
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;
 
 import java.sql.Connection;
@@ -11,6 +13,7 @@ import java.sql.Statement;
 
 public class Level {
     public static void awardXp(Player player, int amount, Jobs job) {
+        MiniMessage msg = MiniMessage.miniMessage();
         int xp, next;
         try (Connection conn = DatabaseConnector.connect()) {
             Statement statement = conn.createStatement();
@@ -26,10 +29,12 @@ public class Level {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        player.sendMessage(
-                ChatMessageType.ACTION_BAR,
-                new TextComponent(job.name() + " " + xp + "/" + next + "XP")
-        );
+        Component parsed = msg.deserialize(
+                "<aqua><job>: <xp>/<next>XP",
+                Placeholder.component("job", Component.text(job.name())),
+                Placeholder.component("xp", Component.text(xp, NamedTextColor.LIGHT_PURPLE)),
+                Placeholder.component("next", Component.text(next, NamedTextColor.LIGHT_PURPLE)));
+        //player.sendMessage(parsed); TODO: Find an way to make this a action bar
     }
 
     public static int getNextXp(int xp) {
