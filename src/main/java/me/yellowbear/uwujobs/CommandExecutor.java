@@ -1,7 +1,10 @@
 package me.yellowbear.uwujobs;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
@@ -30,28 +33,28 @@ public class CommandExecutor {
             public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] args) {
                 if (commandSender instanceof Player) {
                     Player player = (Player) commandSender;
+                    MiniMessage msg = MiniMessage.miniMessage();
+                    Component parsed;
                     if (args.length == 0) {
-                        commandSender.sendMessage(
-                                ChatColor.AQUA + "Running "
-                                + ChatColor.LIGHT_PURPLE + "uwuJobs"
-                                + ChatColor.AQUA + " version "
-                                + ChatColor.LIGHT_PURPLE + "1.0"
-                                + ChatColor.AQUA + " by "
-                                + ChatColor.LIGHT_PURPLE + "yellowbear"
-                                + ChatColor.AQUA + " & "
-                                + ChatColor.LIGHT_PURPLE + "mapetr"
-                                + "\n"
-                        );
+                        parsed = msg.deserialize(
+                                "<aqua>Running <pl> version <v> by <author1> & <author2>.",
+                                Placeholder.component("pl", Component.text("uwuJobs", NamedTextColor.LIGHT_PURPLE)),
+                                Placeholder.component("v", Component.text("1.0",NamedTextColor.LIGHT_PURPLE)),
+                                Placeholder.component("author1", Component.text("yellowbear",NamedTextColor.LIGHT_PURPLE)),
+                                Placeholder.component("author2", Component.text("mapetr",NamedTextColor.LIGHT_PURPLE))
+                                );
+                        commandSender.sendMessage(parsed);
 
                         try (Connection conn = DatabaseConnector.connect()) {
                             Statement statement = conn.createStatement();
                             for (Jobs job : Jobs.values()) {
                                 ResultSet rs = statement.executeQuery(String.format("SELECT xp FROM %s WHERE id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
-                                commandSender.sendMessage(ChatColor.AQUA + "You have level "
-                                        + ChatColor.LIGHT_PURPLE + getLevel(rs.getInt("xp"))
-                                        + ChatColor.AQUA + " in profession "
-                                        + ChatColor.LIGHT_PURPLE + job.name()
+                                parsed = msg.deserialize(
+                                        "<aqua>You have level <level> in profession <job>",
+                                        Placeholder.component("level", Component.text(getLevel(rs.getInt("xp")),NamedTextColor.LIGHT_PURPLE)),
+                                        Placeholder.component("job", Component.text(job.name(),NamedTextColor.LIGHT_PURPLE))
                                 );
+                                commandSender.sendMessage(parsed);
                             }
                         } catch (SQLException e) {
                             throw new RuntimeException(e);
@@ -66,12 +69,13 @@ public class CommandExecutor {
                                 ResultSet rs = statement.executeQuery(String.format("SELECT id, xp FROM "+args[1].toLowerCase()+" ORDER BY xp DESC LIMIT 5;"));
                                 int i = 1;
                                 while (rs.next()) {
-                                    commandSender.sendMessage(
-                                                        ChatColor.AQUA + String.valueOf(i) + ". "
-                                                        + ChatColor.LIGHT_PURPLE + Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("id"))).getName()
-                                                                + ChatColor.AQUA + ", xp "
-                                                        + ChatColor.LIGHT_PURPLE + String.valueOf(rs.getInt("xp"))
-                                    );
+                                    parsed = msg.deserialize(
+                                            "<aqua><rank>. <player>, xp <xp>",
+                                            Placeholder.component("rank", Component.text(String.valueOf(i),NamedTextColor.LIGHT_PURPLE)),
+                                            Placeholder.component("player", Component.text(Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("id"))).getName(),NamedTextColor.LIGHT_PURPLE)),
+                                            Placeholder.component("xp", Component.text(String.valueOf(rs.getInt("xp")),NamedTextColor.LIGHT_PURPLE))
+                                            );
+                                    commandSender.sendMessage(parsed);
                                     i++;
                                 }
                             } catch (SQLException e) {
