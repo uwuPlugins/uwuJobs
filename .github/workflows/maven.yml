@@ -32,5 +32,5 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: uwuJobs-1.0-SNAPSHOT.jar
+        name: uwuJobs
         path: target/
