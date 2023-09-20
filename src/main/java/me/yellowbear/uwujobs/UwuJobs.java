@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static me.yellowbear.uwujobs.Level.getNextXp;
+import static me.yellowbear.uwujobs.commands.CmdCompletions.RegisterCompletions;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
     private final BlockSets blockSets = new BlockSets(this.getConfig());
@@ -37,6 +38,8 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         // Setup ACF
         PaperCommandManager manager = new PaperCommandManager(this);
         manager.registerCommand(new JobsCommand());
+
+        RegisterCompletions(manager);
 
         // Setup database
         DatabaseOptions options = DatabaseOptions.builder().sqlite("plugins/uwuJobs/uwu.db").build();
