@@ -1,0 +1,7 @@
+name: uwuJobs
+version: '1.0-SNAPSHOT'
+main: me.yellowbear.uwujobs.UwuJobs
+api-version: '1.20'
+authors: [yellowbear, mapetr]
+website: https://xdd.moe/
+

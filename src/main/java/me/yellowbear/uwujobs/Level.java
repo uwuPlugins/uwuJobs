@@ -1,5 +1,7 @@
 package me.yellowbear.uwujobs;
 
+import co.aikar.idb.DB;
+import co.aikar.idb.DbRow;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -15,17 +17,13 @@ public class Level {
     public static void awardXp(Player player, int amount, Jobs job) {
         MiniMessage msg = MiniMessage.miniMessage();
         int xp, next;
-        try (Connection conn = DatabaseConnector.connect()) {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(String.format("select xp, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
-            xp = rs.getInt("xp");
-            next = rs.getInt("next");
+        try {
+            DbRow row = DB.getFirstRow(String.format("select xp, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
+            xp = row.getInt("xp");
+            next = row.getInt("next");
             xp += amount;
-            if (xp >= next) {
-                next = getNextXp(xp);
-            }
-            statement.execute(String.format("update %s set xp = %s, next = %s where id = '%s'", job.name().toLowerCase(), xp, next, player.getUniqueId()));
-            statement.close();
+            if (xp >= next) next = getNextXp(xp);
+            DB.executeUpdate(String.format("update %s set xp = %s, next = %s where id = '%s'", job.name().toLowerCase(), xp, next, player.getUniqueId()));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
