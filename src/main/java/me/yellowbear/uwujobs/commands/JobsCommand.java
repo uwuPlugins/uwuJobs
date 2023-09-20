@@ -49,7 +49,6 @@ public class JobsCommand extends BaseCommand {
 
     @Subcommand("top")
     @Syntax("<job>")
-    @CommandCompletion("@jobs")
     @Description("Shows the top 5 players in a job")
     public void onTop(Player player, String job) {
         try {

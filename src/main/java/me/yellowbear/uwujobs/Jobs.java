@@ -1,7 +1,5 @@
 package me.yellowbear.uwujobs;
 
-import java.util.Arrays;
-
 public enum Jobs {
     MINER,
     LUMBER,
