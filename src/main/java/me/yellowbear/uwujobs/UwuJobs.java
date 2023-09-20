@@ -1,5 +1,8 @@
 package me.yellowbear.uwujobs;
 
+import co.aikar.commands.PaperCommandManager;
+import co.aikar.idb.*;
+import me.yellowbear.uwujobs.commands.JobsCommand;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
@@ -20,10 +23,6 @@ import static me.yellowbear.uwujobs.Level.getNextXp;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
     private final BlockSets blockSets = new BlockSets(this.getConfig());
-    public UwuJobs() throws NoSuchFieldException, IllegalAccessException {
-        new me.yellowbear.uwujobs.CommandExecutor();
-    }
-
 
     @Override
     public void onEnable() {
@@ -35,12 +34,19 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
             throw new RuntimeException(e);
         }
 
-        try (Connection conn = DatabaseConnector.connect()){
-            Statement statement = conn.createStatement();
+        // Setup ACF
+        PaperCommandManager manager = new PaperCommandManager(this);
+        manager.registerCommand(new JobsCommand());
+
+        // Setup database
+        DatabaseOptions options = DatabaseOptions.builder().sqlite("plugins/uwuJobs/uwu.db").build();
+        Database db = PooledDatabaseOptions.builder().options(options).createHikariDatabase();
+        DB.setGlobalDatabase(db);
+
+        try {
             for (Jobs job : Jobs.values()) {
-                statement.execute(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)", job.name().toLowerCase()));
+                DB.executeInsert(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)", job.name().toLowerCase()));
             }
-            statement.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -54,13 +60,11 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         for (Jobs job : Jobs.values()) {
-            try (Connection conn = DatabaseConnector.connect()) {
-                Statement statement = conn.createStatement();
-                statement.execute(String.format("insert into %s (id, xp, next) values ('%s', %s, %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1, getNextXp(1)));
-                statement.close();
+            try {
+                DB.executeInsert(String.format("INSERT INTO %s (id, xp, next) VALUES ('%s', %s, %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1, getNextXp(1)));
             } catch (SQLException e) {
-                //player is already registered with this job
-                }
+                // player already exists
+            }
         }
         /*String[] board = new String[] {
           "my",
