@@ -32,7 +32,7 @@ public class Level {
                 Placeholder.component("job", Component.text(job.name())),
                 Placeholder.component("xp", Component.text(xp, NamedTextColor.LIGHT_PURPLE)),
                 Placeholder.component("next", Component.text(next, NamedTextColor.LIGHT_PURPLE)));
-        //player.sendMessage(parsed); TODO: Find an way to make this a action bar
+        player.sendActionBar(parsed);
     }
 
     public static int getNextXp(int xp) {
