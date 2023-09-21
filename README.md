@@ -43,19 +43,13 @@ We have exciting plans to enhance uwuJobs in the future:
 
 ## Plugin Installation
 
-Currently, the uwuJobs plugin is available as source code. You can build and compile the plugin on your own. Follow these steps to set up the plugin:
+1. Download an `uwuJobs.jar` file from the [Releases](https://github.com/MartinRostejnsky/uwuJobs/releases) page.
 
-1. Clone or download the source code repository from [GitHub](https://github.com/MartinRostejnsky/uwuJobs).
+2. Place the `uwuJobs.jar` file in your server's `plugins` directory.
 
-2. Set up a Java development environment with the necessary dependencies for building Minecraft plugins.
+3. Restart your Minecraft server.
 
-3. Use your Java development environment to compile the source code into a `.jar` file.
-
-4. Place the generated `uwuJobs.jar` file in your server's `plugins` directory.
-
-5. Restart your Minecraft server.
-
-Stay tuned for future updates and releases that may include pre-compiled .jar files for easier installation.
+4. uwuJobs is now installed and ready to use!
 
 ## Support
 
