@@ -87,4 +87,9 @@ public class JobsCommand extends BaseCommand {
             throw new RuntimeException(e);
         }
     }
+    @Subcommand("reload")
+    @Description("Reloads config")
+    public void onReload(Player player){
+        //reload config
+    }
 }
