@@ -5,6 +5,7 @@ import co.aikar.commands.annotation.*;
 import co.aikar.idb.DB;
 import co.aikar.idb.DbRow;
 import me.yellowbear.uwujobs.Jobs;
+import me.yellowbear.uwujobs.services.ConfigService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -86,5 +87,11 @@ public class JobsCommand extends BaseCommand {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+    @Subcommand("reload")
+    @Description("Reloads config")
+    public void onReload(Player player){
+        ConfigService.loadConfig();
+        player.sendMessage("config reloaded");
     }
 }

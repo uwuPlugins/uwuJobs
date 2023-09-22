@@ -3,6 +3,7 @@ package me.yellowbear.uwujobs;
 import co.aikar.commands.PaperCommandManager;
 import co.aikar.idb.*;
 import me.yellowbear.uwujobs.commands.JobsCommand;
+import me.yellowbear.uwujobs.services.ConfigService;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
@@ -22,12 +23,9 @@ import java.util.Set;
 import static me.yellowbear.uwujobs.Level.getNextXp;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
-    private final BlockSets blockSets = new BlockSets(this.getConfig());
-
     @Override
     public void onEnable() {
-        saveDefaultConfig();
-        // Plugin startup logic
+        ConfigService.loadConfig();
         try {
             getServer().getPluginManager().registerEvents(new UwuJobs(), this);
         } catch (Exception e) {
@@ -77,6 +75,6 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
     @EventHandler
     public void onBlockMined(BlockBreakEvent event) throws IOException {
-        Job.handleBlockMined(event, blockSets);
+        Job.handleBlockMined(event, BlockSets.jobsMap);
     }
 }
