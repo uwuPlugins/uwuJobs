@@ -8,11 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BlockSets {
-    public Map<Jobs, Map<Material, Integer>> jobsMap = new HashMap<>();
-    public BlockSets(FileConfiguration file) {
-        loadConfig(file);
-    }
-    private void loadConfig(FileConfiguration file) {
+    public static Map<Jobs, Map<Material, Integer>> jobsMap = new HashMap<>();
+    public static void loadConfig(FileConfiguration file) {
+        Map<Jobs, Map<Material, Integer>> newMap = new HashMap<>();
         for (Jobs job : Jobs.values()) {
             ConfigurationSection section = file.getConfigurationSection(job.name());
             Map<Material, Integer> tempMap = new HashMap<>();
@@ -20,8 +18,11 @@ public class BlockSets {
                 for (String key : section.getKeys(true)) {
                     tempMap.put(Material.getMaterial(key), file.getInt(job.name()+"." + key));
                 }
-                jobsMap.put(job,tempMap);
+                newMap.put(job,tempMap);
+                System.out.println(job);
+                System.out.println(tempMap);
             }
         }
+        jobsMap = newMap;
     }
 }
