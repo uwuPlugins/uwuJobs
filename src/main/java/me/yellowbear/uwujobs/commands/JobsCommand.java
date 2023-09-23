@@ -11,6 +11,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
@@ -67,13 +68,9 @@ public class JobsCommand extends BaseCommand {
             player.sendMessage(msg.deserialize("<aqua>Top 5 players in <job>", Placeholder.component("job", Component.text(job, NamedTextColor.LIGHT_PURPLE))));
             int i = 1;
             for (DbRow row : rows) {
-                Player playerLeaderboard = Bukkit.getPlayer(UUID.fromString(row.getString("id")));
+                OfflinePlayer playerLeaderboard = Bukkit.getOfflinePlayer(UUID.fromString(row.getString("id")));
                 String playerName;
-                if (playerLeaderboard == null) {
-                    playerName = row.getString("id");
-                } else {
-                    playerName = playerLeaderboard.getName();
-                }
+                playerName = playerLeaderboard.getName();
 
                 Component parsed = msg.deserialize(
                         "<aqua><rank>. <player>: xp <level>",
