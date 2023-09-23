@@ -34,6 +34,15 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
         // Setup ACF
         PaperCommandManager manager = new PaperCommandManager(this);
+
+        manager.getCommandCompletions().registerCompletion("jobs", c -> {
+            Set<String> jobs = new HashSet<>();
+            for (Jobs job : Jobs.values()) {
+                jobs.add(job.name().toLowerCase());
+            }
+            return jobs;
+        });
+
         manager.registerCommand(new JobsCommand());
 
         // Setup database
