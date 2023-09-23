@@ -61,6 +61,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
     @Override
     public void onDisable() {
+        DB.close();
         // Plugin shutdown logic
     }
 

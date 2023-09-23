@@ -5,6 +5,7 @@ import co.aikar.commands.annotation.*;
 import co.aikar.idb.DB;
 import co.aikar.idb.DbRow;
 import me.yellowbear.uwujobs.Jobs;
+import me.yellowbear.uwujobs.UwuJobs;
 import me.yellowbear.uwujobs.services.ConfigService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -29,7 +30,7 @@ public class JobsCommand extends BaseCommand {
         Component parsed = msg.deserialize(
                 "<aqua>Running <pl> version <v> by <author1> & <author2>.",
                 Placeholder.component("pl", Component.text("uwuJobs", NamedTextColor.LIGHT_PURPLE)),
-                Placeholder.component("v", Component.text("1.0",NamedTextColor.LIGHT_PURPLE)),
+                Placeholder.component("v", Component.text(UwuJobs.getPlugin(UwuJobs.class).getPluginMeta().getVersion(),NamedTextColor.LIGHT_PURPLE)),
                 Placeholder.component("author1", Component.text("yellowbear",NamedTextColor.LIGHT_PURPLE)),
                 Placeholder.component("author2", Component.text("mapetr",NamedTextColor.LIGHT_PURPLE))
         );
