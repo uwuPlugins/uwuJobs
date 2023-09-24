@@ -19,8 +19,6 @@ public class BlockSets {
                     tempMap.put(Material.getMaterial(key), file.getInt(job.name()+"." + key));
                 }
                 newMap.put(job,tempMap);
-                System.out.println(job);
-                System.out.println(tempMap);
             }
         }
         jobsMap = newMap;
