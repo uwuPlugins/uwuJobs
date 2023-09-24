@@ -24,9 +24,14 @@ public class ConfigService {
     public static void loadConfig() {
         plugin.reloadConfig();
         plugin.saveDefaultConfig();
-        blockConfiguration = createCustomConfig("blocks.yml");
-        configuration = plugin.getConfig();
+        initializeConfigs();
         plugin.saveConfig();
+    }
+    private static void initializeConfigs() {
+        configuration = plugin.getConfig();
+        blockConfiguration = createCustomConfig("blocks.yml");
+    }
+    private static void reloadServices() {
         BlockSets.loadConfig(blockConfiguration);
     }
     private static FileConfiguration createCustomConfig(String fileName) {
