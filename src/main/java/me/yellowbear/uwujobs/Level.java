@@ -16,31 +16,19 @@ import java.sql.Statement;
 public class Level {
     public static void awardXp(Player player, int amount, Jobs job) {
         MiniMessage msg = MiniMessage.miniMessage();
-        int xp, next;
+        int xp;
         try {
-            DbRow row = DB.getFirstRow(String.format("select xp, next from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
+            DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
             xp = row.getInt("xp");
-            next = row.getInt("next");
             xp += amount;
-            if (xp >= next) next = getNextXp(xp);
-            DB.executeUpdate(String.format("update %s set xp = %s, next = %s where id = '%s'", job.name().toLowerCase(), xp, next, player.getUniqueId()));
+            DB.executeUpdate(String.format("update %s set xp = %s where id = '%s'", job.name().toLowerCase(), xp, player.getUniqueId()));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         Component parsed = msg.deserialize(
-                "<aqua><job>: <xp>/<next>XP",
+                "<aqua><job>: <xp>XP",
                 Placeholder.component("job", Component.text(job.name())),
-                Placeholder.component("xp", Component.text(xp, NamedTextColor.LIGHT_PURPLE)),
-                Placeholder.component("next", Component.text(next, NamedTextColor.LIGHT_PURPLE)));
+                Placeholder.component("xp", Component.text(xp, NamedTextColor.LIGHT_PURPLE)));
         player.sendActionBar(parsed);
-    }
-
-    public static int getNextXp(int xp) {
-        int level = getLevel(xp)+1;
-        return (int) ((level*level)/0.1);
-    }
-
-    public static int getLevel(int xp) {
-        return (int) Math.sqrt(xp*0.1);
     }
 }
