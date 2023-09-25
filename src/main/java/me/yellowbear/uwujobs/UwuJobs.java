@@ -4,8 +4,6 @@ import co.aikar.commands.PaperCommandManager;
 import co.aikar.idb.*;
 import me.yellowbear.uwujobs.commands.JobsCommand;
 import me.yellowbear.uwujobs.services.ConfigService;
-import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,13 +12,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Set;
-
-import static me.yellowbear.uwujobs.Level.getNextXp;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
     private BlockSets blockSets = new BlockSets();
@@ -76,7 +70,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
     public void onPlayerJoin(PlayerJoinEvent event) {
         for (Jobs job : Jobs.values()) {
             try {
-                DB.executeInsert(String.format("INSERT INTO %s (id, xp, next) VALUES ('%s', %s, %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1, getNextXp(1)));
+                DB.executeInsert(String.format("INSERT INTO %s (id, xp) VALUES ('%s', %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1));
             } catch (SQLException e) {
                 // player already exists
             }

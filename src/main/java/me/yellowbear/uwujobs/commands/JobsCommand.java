@@ -19,8 +19,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
-import static me.yellowbear.uwujobs.Level.getLevel;
-
 @CommandAlias("jobs")
 public class JobsCommand extends BaseCommand {
     MiniMessage msg = MiniMessage.miniMessage();
@@ -39,8 +37,8 @@ public class JobsCommand extends BaseCommand {
             for (Jobs job : Jobs.values()) {
                 DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
                 parsed = msg.deserialize(
-                        "<aqua>You have level <level> in profession <job>",
-                        Placeholder.component("level", Component.text(getLevel(row.getInt("xp")),NamedTextColor.LIGHT_PURPLE)),
+                        "<aqua>You have <xp>XP in profession <job>",
+                        Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.LIGHT_PURPLE)),
                         Placeholder.component("job", Component.text(job.name(),NamedTextColor.LIGHT_PURPLE))
                 );
                 player.sendMessage(parsed);
