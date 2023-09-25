@@ -23,9 +23,16 @@ import java.util.Set;
 import static me.yellowbear.uwujobs.Level.getNextXp;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
+    private BlockSets blockSets = new BlockSets();
     @Override
     public void onEnable() {
-        ConfigService.loadConfig();
+        try {
+            ConfigService.registerCustomConfig("blocks.yml");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        ConfigService.registerService(blockSets, "blocks.yml");
+        ConfigService.loadConfigs();
         try {
             getServer().getPluginManager().registerEvents(new UwuJobs(), this);
         } catch (Exception e) {
@@ -74,6 +81,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
                 // player already exists
             }
         }
+
         /*String[] board = new String[] {
           "my",
           "awesome" ,
