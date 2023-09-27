@@ -55,7 +55,7 @@ public class JobsCommand extends BaseCommand {
     public void onTop(Player player, String job) {
         try {
             // Check if job exists
-            if (Jobs.getJob(job) == null) {
+            if (Jobs.getJob(job) == null && !job.equals("all")) {
                 Component parsed = msg.deserialize(
                         "<aqua>Job <job> does not exist",
                         Placeholder.component("job", Component.text(job, NamedTextColor.LIGHT_PURPLE))
@@ -64,7 +64,24 @@ public class JobsCommand extends BaseCommand {
                 return;
             }
 
-            List<DbRow> rows = DB.getResults(String.format("select id, xp from %s order by xp desc limit 5", job.toLowerCase()));
+            List<DbRow> rows;
+
+            if (job.equalsIgnoreCase("all")) {
+                StringBuilder queryBuilder = new StringBuilder();
+                queryBuilder.append("SELECT id, SUM(xp) AS xp FROM (");
+
+                for (Jobs jobEnum : Jobs.values()) {
+                    queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
+                }
+
+                queryBuilder.setLength(queryBuilder.length() - " UNION ALL ".length());
+                queryBuilder.append(") GROUP BY id ORDER BY xp DESC LIMIT 5");
+
+                rows = DB.getResults(queryBuilder.toString());
+            } else {
+                rows = DB.getResults(String.format("select id, xp from %s order by xp desc limit 5", job.toLowerCase()));
+            }
+
             player.sendMessage(msg.deserialize("<aqua>Top 5 players in <job>", Placeholder.component("job", Component.text(job, NamedTextColor.LIGHT_PURPLE))));
             int i = 1;
             for (DbRow row : rows) {
