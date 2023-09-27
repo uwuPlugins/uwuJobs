@@ -6,6 +6,8 @@ import co.aikar.idb.DB;
 import co.aikar.idb.DbRow;
 import me.yellowbear.uwujobs.UwuJobs;
 import me.yellowbear.uwujobs.jobs.BlockBreak;
+import me.yellowbear.uwujobs.jobs.BlockPlace;
+import me.yellowbear.uwujobs.jobs.MobKill;
 import me.yellowbear.uwujobs.services.ConfigService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -44,6 +46,24 @@ public class JobsCommand extends BaseCommand {
                 );
                 player.sendMessage(parsed);
             }
+            for (BlockPlace job : BlockPlace.values()) {
+                DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
+                parsed = msg.deserialize(
+                        "<aqua>You have <xp>XP in profession <job>",
+                        Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.LIGHT_PURPLE)),
+                        Placeholder.component("job", Component.text(job.name(),NamedTextColor.LIGHT_PURPLE))
+                );
+                player.sendMessage(parsed);
+            }
+            for (MobKill job : MobKill.values()) {
+                DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
+                parsed = msg.deserialize(
+                        "<aqua>You have <xp>XP in profession <job>",
+                        Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.LIGHT_PURPLE)),
+                        Placeholder.component("job", Component.text(job.name(),NamedTextColor.LIGHT_PURPLE))
+                );
+                player.sendMessage(parsed);
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -56,7 +76,7 @@ public class JobsCommand extends BaseCommand {
     public void onTop(Player player, String job) {
         try {
             // Check if job exists
-            if (BlockBreak.getJob(job) == null) {
+            if (BlockBreak.getJob(job) == null && BlockPlace.getJob(job) == null && MobKill.getJob(job) == null) {
                 Component parsed = msg.deserialize(
                         "<aqua>Job <job> does not exist",
                         Placeholder.component("job", Component.text(job, NamedTextColor.LIGHT_PURPLE))
