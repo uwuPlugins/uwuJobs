@@ -40,6 +40,7 @@ public class Job {
     public static void handleJobEvent(EntityDeathEvent event, Map<MobKill, Map<EntityType, Integer>> jobsMap) throws IOException {
         for (MobKill job : MobKill.values()) {
             if (jobsMap.get(job).get(event.getEntity().getType()) != null) {
+                if (event.getEntity().getKiller() == null) { return; }
                 awardXp(event.getEntity().getKiller(), jobsMap.get(job).get(event.getEntity().getType()), job);
             }
         }
