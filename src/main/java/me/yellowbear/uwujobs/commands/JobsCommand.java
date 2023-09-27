@@ -109,7 +109,9 @@ public class JobsCommand extends BaseCommand {
     @Subcommand("reload")
     @Description("Reloads config")
     public void onReload(Player player){
-        ConfigService.loadConfigs();
-        player.sendMessage("config reloaded");
+        if (ConfigService.loadConfigs()) {
+            player.sendMessage("config reloaded");
+
+        }
     }
 }

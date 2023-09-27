@@ -23,12 +23,13 @@ public class ConfigService {
     }
 
 
-    public static void loadConfigs() {
+    public static boolean loadConfigs() {
         plugin.reloadConfig();
         plugin.saveDefaultConfig();
         plugin.saveConfig();
         reloadConfigs();
         reloadServices();
+        return true; //Success
     }
 
     public static void registerCustomConfig(String fileName) throws IOException {
