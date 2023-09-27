@@ -11,6 +11,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFertilizeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -121,5 +122,10 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) throws IOException {
         Job.handleJobEvent(event, BlockSets.killJobsMap);
+    }
+
+    @EventHandler
+    public void onFertilize(BlockFertilizeEvent event) {
+        Job.handleJobEvent(event);
     }
 }

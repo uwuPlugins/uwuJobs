@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.block.data.Ageable; //Nezamenovat s Entity.Ageable!!!
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFertilizeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 
@@ -44,5 +45,10 @@ public class Job {
                 awardXp(event.getEntity().getKiller(), jobsMap.get(job).get(event.getEntity().getType()), job);
             }
         }
+    }
+
+    public static void handleJobEvent(BlockFertilizeEvent event) {
+        if (event.getPlayer() == null) { return; }
+        awardXp(event.getPlayer(), 1, BlockBreak.FARMER);
     }
 }
