@@ -64,53 +64,39 @@ public class JobsCommand extends BaseCommand {
                 return;
             }
 
+            List<DbRow> rows;
+
             if (job.equalsIgnoreCase("all")) {
                 StringBuilder queryBuilder = new StringBuilder();
-                queryBuilder.append("SELECT id, SUM(xp) AS total_xp FROM (");
+                queryBuilder.append("SELECT id, SUM(xp) AS xp FROM (");
 
                 for (Jobs jobEnum : Jobs.values()) {
                     queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
                 }
 
                 queryBuilder.setLength(queryBuilder.length() - " UNION ALL ".length());
-                queryBuilder.append(") GROUP BY id ORDER BY total_xp DESC LIMIT 5");
+                queryBuilder.append(") GROUP BY id ORDER BY xp DESC LIMIT 5");
 
-                List<DbRow> rows = DB.getResults(queryBuilder.toString());
-
-                player.sendMessage(msg.deserialize("<aqua>Top 5 players in <job>", Placeholder.component("job", Component.text(job, NamedTextColor.LIGHT_PURPLE))));
-                int i = 1;
-                for (DbRow row : rows) {
-                    OfflinePlayer playerLeaderboard = Bukkit.getOfflinePlayer(UUID.fromString(row.getString("id")));
-                    String playerName;
-                    playerName = playerLeaderboard.getName();
-
-                    Component parsed = msg.deserialize(
-                            "<aqua><rank>. <player>: xp <total_xp>",
-                            Placeholder.component("rank", Component.text(i, NamedTextColor.LIGHT_PURPLE)),
-                            Placeholder.component("player", Component.text(playerName, NamedTextColor.AQUA)),
-                            Placeholder.component("total_xp", Component.text(row.getInt("total_xp"), NamedTextColor.LIGHT_PURPLE))
-                    );
-                    player.sendMessage(parsed);
-                    i++;
-                }
+                rows = DB.getResults(queryBuilder.toString());
             } else {
-                List<DbRow> rows = DB.getResults(String.format("select id, xp from %s order by xp desc limit 5", job.toLowerCase()));
-                player.sendMessage(msg.deserialize("<aqua>Top 5 players in <job>", Placeholder.component("job", Component.text(job, NamedTextColor.LIGHT_PURPLE))));
-                int i = 1;
-                for (DbRow row : rows) {
-                    OfflinePlayer playerLeaderboard = Bukkit.getOfflinePlayer(UUID.fromString(row.getString("id")));
-                    String playerName;
-                    playerName = playerLeaderboard.getName();
+                rows = DB.getResults(String.format("select id, xp from %s order by xp desc limit 5", job.toLowerCase()));
+            }
 
-                    Component parsed = msg.deserialize(
-                            "<aqua><rank>. <player>: xp <level>",
-                            Placeholder.component("rank", Component.text(i, NamedTextColor.LIGHT_PURPLE)),
-                            Placeholder.component("player", Component.text(playerName, NamedTextColor.AQUA)),
-                            Placeholder.component("level", Component.text(row.getInt("xp"), NamedTextColor.LIGHT_PURPLE))
-                    );
-                    player.sendMessage(parsed);
-                    i++;
-                }
+            player.sendMessage(msg.deserialize("<aqua>Top 5 players in <job>", Placeholder.component("job", Component.text(job, NamedTextColor.LIGHT_PURPLE))));
+            int i = 1;
+            for (DbRow row : rows) {
+                OfflinePlayer playerLeaderboard = Bukkit.getOfflinePlayer(UUID.fromString(row.getString("id")));
+                String playerName;
+                playerName = playerLeaderboard.getName();
+
+                Component parsed = msg.deserialize(
+                        "<aqua><rank>. <player>: xp <level>",
+                        Placeholder.component("rank", Component.text(i, NamedTextColor.LIGHT_PURPLE)),
+                        Placeholder.component("player", Component.text(playerName, NamedTextColor.AQUA)),
+                        Placeholder.component("level", Component.text(row.getInt("xp"), NamedTextColor.LIGHT_PURPLE))
+                );
+                player.sendMessage(parsed);
+                i++;
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
