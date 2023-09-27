@@ -49,6 +49,6 @@ public class Job {
 
     public static void handleJobEvent(BlockFertilizeEvent event) {
         if (event.getPlayer() == null) { return; }
-        awardXp(event.getPlayer(), 1, BlockBreak.FARMER);
+        awardXp(event.getPlayer(), 1, BlockBreak.FARMER); //TODO: make reward configurable in #40
     }
 }

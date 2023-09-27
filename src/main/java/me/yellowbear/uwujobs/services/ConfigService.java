@@ -51,8 +51,6 @@ public class ConfigService {
         service.reloadConfig(configurations.get(configName));
     }
     public static void reloadServices() {
-        System.out.println(configurations.get("blocks.yml").getValues(true));
-
         for (IConfigurableService service : registeredServices.keySet()) {
             service.reloadConfig(configurations.get(registeredServices.get(service)));
         }
