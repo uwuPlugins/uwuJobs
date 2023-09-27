@@ -4,8 +4,8 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import co.aikar.idb.DB;
 import co.aikar.idb.DbRow;
-import me.yellowbear.uwujobs.Jobs;
 import me.yellowbear.uwujobs.UwuJobs;
+import me.yellowbear.uwujobs.jobs.BlockBreak;
 import me.yellowbear.uwujobs.services.ConfigService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -13,6 +13,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Breedable;
 import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
@@ -34,7 +35,7 @@ public class JobsCommand extends BaseCommand {
         );
         player.sendMessage(parsed);
         try {
-            for (Jobs job : Jobs.values()) {
+            for (BlockBreak job : BlockBreak.values()) {
                 DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
                 parsed = msg.deserialize(
                         "<aqua>You have <xp>XP in profession <job>",
@@ -55,7 +56,7 @@ public class JobsCommand extends BaseCommand {
     public void onTop(Player player, String job) {
         try {
             // Check if job exists
-            if (Jobs.getJob(job) == null) {
+            if (BlockBreak.getJob(job) == null) {
                 Component parsed = msg.deserialize(
                         "<aqua>Job <job> does not exist",
                         Placeholder.component("job", Component.text(job, NamedTextColor.LIGHT_PURPLE))
