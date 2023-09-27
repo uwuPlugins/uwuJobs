@@ -41,6 +41,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
             for (Jobs job : Jobs.values()) {
                 jobs.add(job.name().toLowerCase());
             }
+            jobs.add("all");
             return jobs;
         });
 
