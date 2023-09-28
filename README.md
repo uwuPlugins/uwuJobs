@@ -2,6 +2,9 @@
 
 uwuJobs is a fun Minecraft plugin that adds a simple job system to your server. Earn XP and compete with other players in six different jobs: Miner, Lumberjack, Farmer, Shoveler, Builder and Hunter. Check out the commands below to get started!
 
+> **Note**
+> If you are looking to contribute to this project, you might want to take a look at our [developer docs](docs/README.dev.md) instead.
+
 ## Commands
 
 ### /jobs
