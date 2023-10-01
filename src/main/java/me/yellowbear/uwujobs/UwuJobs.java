@@ -113,19 +113,19 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
     @EventHandler
     public void onBlockMined(BlockBreakEvent event) throws IOException {
-        Job.handleJobEvent(event, BlockSets.breakJobsMap);
+        Jobs.handleJobEvent(event, BlockSets.breakJobsMap);
     }
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) throws IOException {
-        Job.handleJobEvent(event, BlockSets.placeJobsMap);
+        Jobs.handleJobEvent(event, BlockSets.placeJobsMap);
     }
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) throws IOException {
-        Job.handleJobEvent(event, BlockSets.killJobsMap);
+        Jobs.handleJobEvent(event, BlockSets.killJobsMap);
     }
 
     @EventHandler
     public void onFertilize(BlockFertilizeEvent event) {
-        Job.handleJobEvent(event);
+        Jobs.handleJobEvent(event);
     }
 }

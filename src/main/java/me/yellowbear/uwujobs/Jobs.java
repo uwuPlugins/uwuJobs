@@ -16,7 +16,7 @@ import java.util.Map;
 
 import static me.yellowbear.uwujobs.Level.awardXp;
 
-public class Job {
+public class Jobs {
     public static void handleJobEvent(BlockBreakEvent event, Map<BlockBreak, Map<Material, Integer>> jobsMap) throws IOException {
         Ageable ageable;
         try {
