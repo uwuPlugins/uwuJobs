@@ -91,7 +91,13 @@ public class JobsCommand extends BaseCommand {
                 StringBuilder queryBuilder = new StringBuilder();
                 queryBuilder.append("SELECT id, SUM(xp) AS xp FROM (");
 
-                for (Jobs jobEnum : Jobs.values()) {
+                for (BlockBreak jobEnum : BlockBreak.values()) {
+                    queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
+                }
+                for (BlockPlace jobEnum : BlockPlace.values()) {
+                    queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
+                }
+                for (MobKill jobEnum : MobKill.values()) {
                     queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
                 }
 
