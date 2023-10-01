@@ -4,8 +4,10 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import co.aikar.idb.DB;
 import co.aikar.idb.DbRow;
-import me.yellowbear.uwujobs.Jobs;
 import me.yellowbear.uwujobs.UwuJobs;
+import me.yellowbear.uwujobs.jobs.BlockBreak;
+import me.yellowbear.uwujobs.jobs.BlockPlace;
+import me.yellowbear.uwujobs.jobs.MobKill;
 import me.yellowbear.uwujobs.services.ConfigService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -13,6 +15,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Breedable;
 import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
@@ -34,7 +37,25 @@ public class JobsCommand extends BaseCommand {
         );
         player.sendMessage(parsed);
         try {
-            for (Jobs job : Jobs.values()) {
+            for (BlockBreak job : BlockBreak.values()) {
+                DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
+                parsed = msg.deserialize(
+                        "<aqua>You have <xp>XP in profession <job>",
+                        Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.LIGHT_PURPLE)),
+                        Placeholder.component("job", Component.text(job.name(),NamedTextColor.LIGHT_PURPLE))
+                );
+                player.sendMessage(parsed);
+            }
+            for (BlockPlace job : BlockPlace.values()) {
+                DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
+                parsed = msg.deserialize(
+                        "<aqua>You have <xp>XP in profession <job>",
+                        Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.LIGHT_PURPLE)),
+                        Placeholder.component("job", Component.text(job.name(),NamedTextColor.LIGHT_PURPLE))
+                );
+                player.sendMessage(parsed);
+            }
+            for (MobKill job : MobKill.values()) {
                 DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
                 parsed = msg.deserialize(
                         "<gray>You have <xp> XP in profession <job>",
@@ -55,7 +76,7 @@ public class JobsCommand extends BaseCommand {
     public void onTop(Player player, String job) {
         try {
             // Check if job exists
-            if (Jobs.getJob(job) == null && !job.equalsIgnoreCase("all")) {
+            if (BlockBreak.getJob(job) == null && BlockPlace.getJob(job) == null && MobKill.getJob(job) == null && !job.equalsIgnoreCase("all")) {
                 Component parsed = msg.deserialize(
                         "<gray>Job <job> does not exist",
                         Placeholder.component("job", Component.text(job, NamedTextColor.GOLD))
@@ -70,7 +91,13 @@ public class JobsCommand extends BaseCommand {
                 StringBuilder queryBuilder = new StringBuilder();
                 queryBuilder.append("SELECT id, SUM(xp) AS xp FROM (");
 
-                for (Jobs jobEnum : Jobs.values()) {
+                for (BlockBreak jobEnum : BlockBreak.values()) {
+                    queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
+                }
+                for (BlockPlace jobEnum : BlockPlace.values()) {
+                    queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
+                }
+                for (MobKill jobEnum : MobKill.values()) {
                     queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
                 }
 
@@ -105,7 +132,9 @@ public class JobsCommand extends BaseCommand {
     @Subcommand("reload")
     @Description("Reloads config")
     public void onReload(Player player){
-        ConfigService.loadConfigs();
-        player.sendMessage("config reloaded");
+        if (ConfigService.loadConfigs()) {
+            player.sendMessage("config reloaded");
+
+        }
     }
 }

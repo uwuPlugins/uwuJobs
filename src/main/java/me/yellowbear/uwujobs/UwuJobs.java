@@ -3,11 +3,17 @@ package me.yellowbear.uwujobs;
 import co.aikar.commands.PaperCommandManager;
 import co.aikar.idb.*;
 import me.yellowbear.uwujobs.commands.JobsCommand;
+import me.yellowbear.uwujobs.jobs.BlockBreak;
+import me.yellowbear.uwujobs.jobs.BlockPlace;
+import me.yellowbear.uwujobs.jobs.MobKill;
 import me.yellowbear.uwujobs.services.ConfigService;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFertilizeEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -37,7 +43,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
         manager.getCommandCompletions().registerCompletion("jobs", c -> {
             Set<String> jobs = new HashSet<>();
-            for (Jobs job : Jobs.values()) {
+            for (BlockBreak job : BlockBreak.values()) {
                 jobs.add(job.name().toLowerCase());
             }
             jobs.add("all");
@@ -52,7 +58,13 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         DB.setGlobalDatabase(db);
 
         try {
-            for (Jobs job : Jobs.values()) {
+            for (BlockBreak job : BlockBreak.values()) {
+                DB.executeInsert(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)", job.name().toLowerCase()));
+            }
+            for (BlockPlace job : BlockPlace.values()) {
+                DB.executeInsert(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)", job.name().toLowerCase()));
+            }
+            for (MobKill job : MobKill.values()) {
                 DB.executeInsert(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)", job.name().toLowerCase()));
             }
         } catch (SQLException e) {
@@ -68,7 +80,21 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        for (Jobs job : Jobs.values()) {
+        for (BlockBreak job : BlockBreak.values()) {
+            try {
+                DB.executeInsert(String.format("INSERT INTO %s (id, xp) VALUES ('%s', %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1));
+            } catch (SQLException e) {
+                // player already exists
+            }
+        }
+        for (BlockPlace job : BlockPlace.values()) {
+            try {
+                DB.executeInsert(String.format("INSERT INTO %s (id, xp) VALUES ('%s', %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1));
+            } catch (SQLException e) {
+                // player already exists
+            }
+        }
+        for (MobKill job : MobKill.values()) {
             try {
                 DB.executeInsert(String.format("INSERT INTO %s (id, xp) VALUES ('%s', %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1));
             } catch (SQLException e) {
@@ -87,6 +113,19 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
 
     @EventHandler
     public void onBlockMined(BlockBreakEvent event) throws IOException {
-        Job.handleBlockMined(event, BlockSets.jobsMap);
+        Job.handleJobEvent(event, BlockSets.breakJobsMap);
+    }
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) throws IOException {
+        Job.handleJobEvent(event, BlockSets.placeJobsMap);
+    }
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) throws IOException {
+        Job.handleJobEvent(event, BlockSets.killJobsMap);
+    }
+
+    @EventHandler
+    public void onFertilize(BlockFertilizeEvent event) {
+        Job.handleJobEvent(event);
     }
 }

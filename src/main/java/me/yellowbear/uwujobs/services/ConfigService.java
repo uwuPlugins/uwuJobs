@@ -23,12 +23,13 @@ public class ConfigService {
     }
 
 
-    public static void loadConfigs() {
+    public static boolean loadConfigs() {
         plugin.reloadConfig();
         plugin.saveDefaultConfig();
         plugin.saveConfig();
         reloadConfigs();
         reloadServices();
+        return true; //Success
     }
 
     public static void registerCustomConfig(String fileName) throws IOException {
@@ -50,8 +51,6 @@ public class ConfigService {
         service.reloadConfig(configurations.get(configName));
     }
     public static void reloadServices() {
-        System.out.println(configurations.get("blocks.yml").getValues(true));
-
         for (IConfigurableService service : registeredServices.keySet()) {
             service.reloadConfig(configurations.get(registeredServices.get(service)));
         }
