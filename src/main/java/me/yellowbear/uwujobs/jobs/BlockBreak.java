@@ -1,13 +1,12 @@
-package me.yellowbear.uwujobs;
+package me.yellowbear.uwujobs.jobs;
 
-public enum Jobs {
+public enum BlockBreak {
     MINER,
     LUMBER,
     FARMER,
     SHOVELER;
-
-    public static Jobs getJob(String job) {
-        for (Jobs jobs : Jobs.values()) {
+    public static BlockBreak getJob(String job) {
+        for (BlockBreak jobs : BlockBreak.values()) {
             if (jobs.name().equalsIgnoreCase(job)) {
                 return jobs;
             }

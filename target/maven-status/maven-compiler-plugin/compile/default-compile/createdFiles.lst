@@ -1,0 +1,11 @@
+me\yellowbear\uwujobs\jobs\BlockBreak.class
+me\yellowbear\uwujobs\Job.class
+me\yellowbear\uwujobs\ScoreboardController.class
+me\yellowbear\uwujobs\services\ConfigService.class
+me\yellowbear\uwujobs\commands\JobsCommand.class
+me\yellowbear\uwujobs\jobs\BlockPlace.class
+me\yellowbear\uwujobs\interfaces\IConfigurableService.class
+me\yellowbear\uwujobs\BlockSets.class
+me\yellowbear\uwujobs\jobs\MobKill.class
+me\yellowbear\uwujobs\UwuJobs.class
+me\yellowbear\uwujobs\Level.class

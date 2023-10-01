@@ -4,8 +4,10 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import co.aikar.idb.DB;
 import co.aikar.idb.DbRow;
-import me.yellowbear.uwujobs.Jobs;
 import me.yellowbear.uwujobs.UwuJobs;
+import me.yellowbear.uwujobs.jobs.BlockBreak;
+import me.yellowbear.uwujobs.jobs.BlockPlace;
+import me.yellowbear.uwujobs.jobs.MobKill;
 import me.yellowbear.uwujobs.services.ConfigService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -13,6 +15,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Breedable;
 import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
@@ -26,20 +29,38 @@ public class JobsCommand extends BaseCommand {
     @Default
     public void onDefault(Player player) {
         Component parsed = msg.deserialize(
-                "<aqua>Running <pl> version <v> by <author1> & <author2>.",
-                Placeholder.component("pl", Component.text("uwuJobs", NamedTextColor.LIGHT_PURPLE)),
-                Placeholder.component("v", Component.text(UwuJobs.getPlugin(UwuJobs.class).getPluginMeta().getVersion(),NamedTextColor.LIGHT_PURPLE)),
-                Placeholder.component("author1", Component.text("yellowbear",NamedTextColor.LIGHT_PURPLE)),
-                Placeholder.component("author2", Component.text("mapetr",NamedTextColor.LIGHT_PURPLE))
+                "<green>Running <pl> version <v> by <author1> & <author2>.",
+                Placeholder.component("pl", Component.text("uwuJobs", NamedTextColor.GOLD)),
+                Placeholder.component("v", Component.text(UwuJobs.getPlugin(UwuJobs.class).getPluginMeta().getVersion(),NamedTextColor.GOLD)),
+                Placeholder.component("author1", Component.text("yellowbear",NamedTextColor.GOLD)),
+                Placeholder.component("author2", Component.text("mapetr",NamedTextColor.GOLD))
         );
         player.sendMessage(parsed);
         try {
-            for (Jobs job : Jobs.values()) {
+            for (BlockBreak job : BlockBreak.values()) {
                 DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
                 parsed = msg.deserialize(
                         "<aqua>You have <xp>XP in profession <job>",
                         Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.LIGHT_PURPLE)),
                         Placeholder.component("job", Component.text(job.name(),NamedTextColor.LIGHT_PURPLE))
+                );
+                player.sendMessage(parsed);
+            }
+            for (BlockPlace job : BlockPlace.values()) {
+                DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
+                parsed = msg.deserialize(
+                        "<aqua>You have <xp>XP in profession <job>",
+                        Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.LIGHT_PURPLE)),
+                        Placeholder.component("job", Component.text(job.name(),NamedTextColor.LIGHT_PURPLE))
+                );
+                player.sendMessage(parsed);
+            }
+            for (MobKill job : MobKill.values()) {
+                DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
+                parsed = msg.deserialize(
+                        "<gray>You have <xp> XP in profession <job>",
+                        Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.GOLD)),
+                        Placeholder.component("job", Component.text(job.name(),NamedTextColor.GOLD))
                 );
                 player.sendMessage(parsed);
             }
@@ -55,17 +76,40 @@ public class JobsCommand extends BaseCommand {
     public void onTop(Player player, String job) {
         try {
             // Check if job exists
-            if (Jobs.getJob(job) == null) {
+            if (BlockBreak.getJob(job) == null && BlockPlace.getJob(job) == null && MobKill.getJob(job) == null && !job.equalsIgnoreCase("all")) {
                 Component parsed = msg.deserialize(
-                        "<aqua>Job <job> does not exist",
-                        Placeholder.component("job", Component.text(job, NamedTextColor.LIGHT_PURPLE))
+                        "<gray>Job <job> does not exist",
+                        Placeholder.component("job", Component.text(job, NamedTextColor.GOLD))
                 );
                 player.sendMessage(parsed);
                 return;
             }
 
-            List<DbRow> rows = DB.getResults(String.format("select id, xp from %s order by xp desc limit 5", job.toLowerCase()));
-            player.sendMessage(msg.deserialize("<aqua>Top 5 players in <job>", Placeholder.component("job", Component.text(job, NamedTextColor.LIGHT_PURPLE))));
+            List<DbRow> rows;
+
+            if (job.equalsIgnoreCase("all")) {
+                StringBuilder queryBuilder = new StringBuilder();
+                queryBuilder.append("SELECT id, SUM(xp) AS xp FROM (");
+
+                for (BlockBreak jobEnum : BlockBreak.values()) {
+                    queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
+                }
+                for (BlockPlace jobEnum : BlockPlace.values()) {
+                    queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
+                }
+                for (MobKill jobEnum : MobKill.values()) {
+                    queryBuilder.append(String.format("SELECT id, xp FROM %s UNION ALL ", jobEnum.name().toLowerCase()));
+                }
+
+                queryBuilder.setLength(queryBuilder.length() - " UNION ALL ".length());
+                queryBuilder.append(") GROUP BY id ORDER BY xp DESC LIMIT 5");
+
+                rows = DB.getResults(queryBuilder.toString());
+            } else {
+                rows = DB.getResults(String.format("select id, xp from %s order by xp desc limit 5", job.toLowerCase()));
+            }
+
+            player.sendMessage(msg.deserialize("<white><bold>Top 5 players in <job>", Placeholder.component("job", Component.text(job, NamedTextColor.GOLD))));
             int i = 1;
             for (DbRow row : rows) {
                 OfflinePlayer playerLeaderboard = Bukkit.getOfflinePlayer(UUID.fromString(row.getString("id")));
@@ -73,10 +117,10 @@ public class JobsCommand extends BaseCommand {
                 playerName = playerLeaderboard.getName();
 
                 Component parsed = msg.deserialize(
-                        "<aqua><rank>. <player>: xp <level>",
-                        Placeholder.component("rank", Component.text(i, NamedTextColor.LIGHT_PURPLE)),
-                        Placeholder.component("player", Component.text(playerName, NamedTextColor.AQUA)),
-                        Placeholder.component("level", Component.text(row.getInt("xp"), NamedTextColor.LIGHT_PURPLE))
+                        "<gray><rank>. <player>: xp <level>",
+                        Placeholder.component("rank", Component.text(i, NamedTextColor.GOLD)),
+                        Placeholder.component("player", Component.text(playerName, NamedTextColor.WHITE)),
+                        Placeholder.component("level", Component.text(row.getInt("xp"), NamedTextColor.GOLD))
                 );
                 player.sendMessage(parsed);
                 i++;
@@ -88,7 +132,9 @@ public class JobsCommand extends BaseCommand {
     @Subcommand("reload")
     @Description("Reloads config")
     public void onReload(Player player){
-        ConfigService.loadConfigs();
-        player.sendMessage("config reloaded");
+        if (ConfigService.loadConfigs()) {
+            player.sendMessage("config reloaded");
+
+        }
     }
 }
