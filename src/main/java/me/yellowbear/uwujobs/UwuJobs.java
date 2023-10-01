@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
-    private BlockSets blockSets = new BlockSets();
     @Override
     public void onEnable() {
         try {
@@ -31,7 +30,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        ConfigService.registerService(blockSets, "blocks.yml");
+        ConfigService.registerService(new BlockSets(), "blocks.yml");
         ConfigService.loadConfigs();
         try {
             getServer().getPluginManager().registerEvents(new UwuJobs(), this);
@@ -47,6 +46,7 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
             for (BlockBreak job : BlockBreak.values()) {
                 jobs.add(job.name().toLowerCase());
             }
+            jobs.add("all");
             return jobs;
         });
 
