@@ -7,6 +7,7 @@ import co.aikar.idb.DbRow;
 import me.yellowbear.uwujobs.UwuJobs;
 import me.yellowbear.uwujobs.jobs.BlockBreak;
 import me.yellowbear.uwujobs.jobs.BlockPlace;
+import me.yellowbear.uwujobs.jobs.Job;
 import me.yellowbear.uwujobs.jobs.MobKill;
 import me.yellowbear.uwujobs.services.ConfigService;
 import net.kyori.adventure.text.Component;
@@ -37,30 +38,12 @@ public class JobsCommand extends BaseCommand {
         );
         player.sendMessage(parsed);
         try {
-            for (BlockBreak job : BlockBreak.values()) {
-                DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
-                parsed = msg.deserialize(
-                        "<aqua>You have <xp>XP in profession <job>",
-                        Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.LIGHT_PURPLE)),
-                        Placeholder.component("job", Component.text(job.name(),NamedTextColor.LIGHT_PURPLE))
-                );
-                player.sendMessage(parsed);
-            }
-            for (BlockPlace job : BlockPlace.values()) {
-                DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
-                parsed = msg.deserialize(
-                        "<aqua>You have <xp>XP in profession <job>",
-                        Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.LIGHT_PURPLE)),
-                        Placeholder.component("job", Component.text(job.name(),NamedTextColor.LIGHT_PURPLE))
-                );
-                player.sendMessage(parsed);
-            }
-            for (MobKill job : MobKill.values()) {
+            for (Job job : Job.values()) {
                 DbRow row = DB.getFirstRow(String.format("select xp from %s where id = '%s'", job.name().toLowerCase(), player.getUniqueId()));
                 parsed = msg.deserialize(
                         "<gray>You have <xp> XP in profession <job>",
-                        Placeholder.component("xp", Component.text(row.getInt("xp"),NamedTextColor.GOLD)),
-                        Placeholder.component("job", Component.text(job.name(),NamedTextColor.GOLD))
+                        Placeholder.component("xp", Component.text(row.getInt("xp"), NamedTextColor.GOLD)),
+                        Placeholder.component("job", Component.text(job.name(), NamedTextColor.GOLD))
                 );
                 player.sendMessage(parsed);
             }
@@ -68,6 +51,7 @@ public class JobsCommand extends BaseCommand {
             throw new RuntimeException(e);
         }
     }
+
 
     @Subcommand("top")
     @Syntax("<job>")
