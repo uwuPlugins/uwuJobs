@@ -1,103 +1,139 @@
-package me.yellowbear.uwujobs;
+package me.yellowbear.uwujobs
 
-import co.aikar.commands.PaperCommandManager;
-import co.aikar.idb.*;
-import me.yellowbear.uwujobs.commands.JobsCommand;
-import me.yellowbear.uwujobs.jobs.BlockBreak;
-import me.yellowbear.uwujobs.jobs.BlockPlace;
-import me.yellowbear.uwujobs.jobs.MobKill;
-import me.yellowbear.uwujobs.services.ConfigService;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockFertilizeEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.java.JavaPlugin;
+import co.aikar.commands.BukkitCommandCompletionContext
+import co.aikar.commands.PaperCommandManager
+import co.aikar.idb.DB
+import co.aikar.idb.Database
+import co.aikar.idb.DatabaseOptions
+import co.aikar.idb.PooledDatabaseOptions
+import me.yellowbear.uwujobs.commands.JobsCommand
+import me.yellowbear.uwujobs.jobs.BlockBreak
+import me.yellowbear.uwujobs.jobs.BlockPlace
+import me.yellowbear.uwujobs.jobs.MobKill
+import me.yellowbear.uwujobs.services.ConfigService
+import org.bukkit.command.CommandExecutor
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockFertilizeEvent
+import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.entity.EntityDeathEvent
+import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.plugin.java.JavaPlugin
+import java.io.IOException
+import java.sql.SQLException
+import java.util.*
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.Set;
-
-public final class UwuJobs extends JavaPlugin implements Listener, CommandExecutor {
-    @Override
-    public void onEnable() {
+class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
+    override fun onEnable() {
         try {
-            ConfigService.registerCustomConfig("blocks.yml");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            ConfigService.registerCustomConfig("blocks.yml")
+        } catch (e: IOException) {
+            throw RuntimeException(e)
         }
-        ConfigService.registerService(new BlockSets(), "blocks.yml");
-        ConfigService.loadConfigs();
+        ConfigService.registerService(BlockSets(), "blocks.yml")
+        ConfigService.loadConfigs()
         try {
-            getServer().getPluginManager().registerEvents(new UwuJobs(), this);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            server.pluginManager.registerEvents(UwuJobs(), this)
+        } catch (e: Exception) {
+            throw RuntimeException(e)
         }
 
         // Setup ACF
-        PaperCommandManager manager = new PaperCommandManager(this);
+        val manager = PaperCommandManager(this)
 
-        manager.getCommandCompletions().registerCompletion("jobs", c -> {
-            Set<String> jobs = new HashSet<>();
-            for (BlockBreak job : BlockBreak.values()) {
-                jobs.add(job.name().toLowerCase());
+        manager.commandCompletions.registerCompletion("jobs") { c: BukkitCommandCompletionContext? ->
+            val jobs: MutableSet<String> = HashSet()
+            for (job in BlockBreak.entries) {
+                jobs.add(job.name.lowercase(Locale.getDefault()))
             }
-            jobs.add("all");
-            return jobs;
-        });
+            jobs.add("all")
+            jobs
+        }
 
-        manager.registerCommand(new JobsCommand());
+        manager.registerCommand(JobsCommand())
 
         // Setup database
-        DatabaseOptions options = DatabaseOptions.builder().sqlite("plugins/uwuJobs/uwu.db").build();
-        Database db = PooledDatabaseOptions.builder().options(options).createHikariDatabase();
-        DB.setGlobalDatabase(db);
+        val options = DatabaseOptions.builder().sqlite("plugins/uwuJobs/uwu.db").build()
+        val db: Database = PooledDatabaseOptions.builder().options(options).createHikariDatabase()
+        DB.setGlobalDatabase(db)
 
         try {
-            for (BlockBreak job : BlockBreak.values()) {
-                DB.executeInsert(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)", job.name().toLowerCase()));
+            for (job in BlockBreak.entries) {
+                DB.executeInsert(
+                    String.format(
+                        "CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)",
+                        job.name.lowercase(Locale.getDefault())
+                    )
+                )
             }
-            for (BlockPlace job : BlockPlace.values()) {
-                DB.executeInsert(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)", job.name().toLowerCase()));
+            for (job in BlockPlace.entries) {
+                DB.executeInsert(
+                    String.format(
+                        "CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)",
+                        job.name.lowercase(Locale.getDefault())
+                    )
+                )
             }
-            for (MobKill job : MobKill.values()) {
-                DB.executeInsert(String.format("CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)", job.name().toLowerCase()));
+            for (job in MobKill.entries) {
+                DB.executeInsert(
+                    String.format(
+                        "CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)",
+                        job.name.lowercase(Locale.getDefault())
+                    )
+                )
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (e: SQLException) {
+            throw RuntimeException(e)
         }
     }
 
-    @Override
-    public void onDisable() {
-        DB.close();
+    override fun onDisable() {
+        DB.close()
         // Plugin shutdown logic
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        for (BlockBreak job : BlockBreak.values()) {
+    fun onPlayerJoin(event: PlayerJoinEvent) {
+        for (job in BlockBreak.entries) {
             try {
-                DB.executeInsert(String.format("INSERT INTO %s (id, xp) VALUES ('%s', %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1));
-            } catch (SQLException e) {
+                DB.executeInsert(
+                    String.format(
+                        "INSERT INTO %s (id, xp) VALUES ('%s', %s)",
+                        job.name.lowercase(Locale.getDefault()),
+                        event.player.uniqueId,
+                        1
+                    )
+                )
+            } catch (e: SQLException) {
                 // player already exists
             }
         }
-        for (BlockPlace job : BlockPlace.values()) {
+        for (job in BlockPlace.entries) {
             try {
-                DB.executeInsert(String.format("INSERT INTO %s (id, xp) VALUES ('%s', %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1));
-            } catch (SQLException e) {
+                DB.executeInsert(
+                    String.format(
+                        "INSERT INTO %s (id, xp) VALUES ('%s', %s)",
+                        job.name.lowercase(Locale.getDefault()),
+                        event.player.uniqueId,
+                        1
+                    )
+                )
+            } catch (e: SQLException) {
                 // player already exists
             }
         }
-        for (MobKill job : MobKill.values()) {
+        for (job in MobKill.entries) {
             try {
-                DB.executeInsert(String.format("INSERT INTO %s (id, xp) VALUES ('%s', %s)", job.name().toLowerCase(), event.getPlayer().getUniqueId(), 1));
-            } catch (SQLException e) {
+                DB.executeInsert(
+                    String.format(
+                        "INSERT INTO %s (id, xp) VALUES ('%s', %s)",
+                        job.name.lowercase(Locale.getDefault()),
+                        event.player.uniqueId,
+                        1
+                    )
+                )
+            } catch (e: SQLException) {
                 // player already exists
             }
         }
@@ -112,20 +148,25 @@ public final class UwuJobs extends JavaPlugin implements Listener, CommandExecut
     }
 
     @EventHandler
-    public void onBlockMined(BlockBreakEvent event) throws IOException {
-        Jobs.handleJobEvent(event, BlockSets.breakJobsMap);
-    }
-    @EventHandler
-    public void onBlockPlace(BlockPlaceEvent event) throws IOException {
-        Jobs.handleJobEvent(event, BlockSets.placeJobsMap);
-    }
-    @EventHandler
-    public void onEntityDeath(EntityDeathEvent event) throws IOException {
-        Jobs.handleJobEvent(event, BlockSets.killJobsMap);
+    @Throws(IOException::class)
+    fun onBlockMined(event: BlockBreakEvent) {
+        Jobs.handleJobEvent(event, BlockSets.Companion.breakJobsMap)
     }
 
     @EventHandler
-    public void onFertilize(BlockFertilizeEvent event) {
-        Jobs.handleJobEvent(event);
+    @Throws(IOException::class)
+    fun onBlockPlace(event: BlockPlaceEvent) {
+        Jobs.handleJobEvent(event, BlockSets.Companion.placeJobsMap)
+    }
+
+    @EventHandler
+    @Throws(IOException::class)
+    fun onEntityDeath(event: EntityDeathEvent) {
+        Jobs.handleJobEvent(event, BlockSets.Companion.killJobsMap)
+    }
+
+    @EventHandler
+    fun onFertilize(event: BlockFertilizeEvent) {
+        Jobs.handleJobEvent(event)
     }
 }

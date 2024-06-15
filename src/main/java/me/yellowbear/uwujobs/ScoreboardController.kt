@@ -1,27 +1,22 @@
-package me.yellowbear.uwujobs;
+package me.yellowbear.uwujobs
 
-import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
-import org.bukkit.scoreboard.*;
+import net.md_5.bungee.api.ChatColor
+import org.bukkit.Bukkit
+import org.bukkit.entity.Player
+import org.bukkit.scoreboard.DisplaySlot
 
-import java.util.Set;
-
-public class ScoreboardController {
-
-    public ScoreboardController(Player p, String[] contents) {
-        ScoreboardManager manager = Bukkit.getScoreboardManager();
-        Scoreboard board = manager.getNewScoreboard();
-        final Objective objective = board.registerNewObjective("test", "dummy");
-        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        objective.setDisplayName(ChatColor.LIGHT_PURPLE + "uwuJobs");
-        for (int i = 0; i < contents.length; i++) {
-            System.out.println(contents[i] + " #" + i);
-            Score score = objective.getScore(contents[i]);
-            score.setScore(contents.length-i);
+class ScoreboardController(p: Player, contents: Array<String>) {
+    init {
+        val manager = Bukkit.getScoreboardManager()
+        val board = manager.newScoreboard
+        val objective = board.registerNewObjective("test", "dummy")
+        objective.displaySlot = DisplaySlot.SIDEBAR
+        objective.displayName = ChatColor.LIGHT_PURPLE.toString() + "uwuJobs"
+        for (i in contents.indices) {
+            println(contents[i] + " #" + i)
+            val score = objective.getScore(contents[i])
+            score.score = contents.size - i
         }
-        p.setScoreboard(board);
+        p.scoreboard = board
     }
-
 }

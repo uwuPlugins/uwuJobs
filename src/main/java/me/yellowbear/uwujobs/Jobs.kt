@@ -1,54 +1,61 @@
-package me.yellowbear.uwujobs;
+package me.yellowbear.uwujobs
 
-import me.yellowbear.uwujobs.jobs.BlockBreak;
-import me.yellowbear.uwujobs.jobs.BlockPlace;
-import me.yellowbear.uwujobs.jobs.MobKill;
-import org.bukkit.Material;
-import org.bukkit.block.data.Ageable; //Nezamenovat s Entity.Ageable!!!
-import org.bukkit.entity.EntityType;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockFertilizeEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
+import me.yellowbear.uwujobs.jobs.BlockBreak
+import me.yellowbear.uwujobs.jobs.BlockPlace
+import me.yellowbear.uwujobs.jobs.MobKill
+import org.bukkit.Material
+import org.bukkit.block.data.Ageable
+import org.bukkit.entity.EntityType
+import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockFertilizeEvent
+import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.entity.EntityDeathEvent
+import java.io.IOException
 
-import java.io.IOException;
-import java.util.Map;
-
-import static me.yellowbear.uwujobs.Level.awardXp;
-
-public class Jobs {
-    public static void handleJobEvent(BlockBreakEvent event, Map<BlockBreak, Map<Material, Integer>> jobsMap) throws IOException {
-        Ageable ageable;
-        try {
-            ageable = (Ageable) event.getBlock().getBlockData();
-        } catch (Exception ex) { ageable = null; }
-        if (!(ageable == null || ageable.getAge() == 7)) {
-            return;
+//Nezamenovat s Entity.Ageable!!!
+object Jobs {
+    @Throws(IOException::class)
+    fun handleJobEvent(event: BlockBreakEvent, jobsMap: Map<BlockBreak, Map<Material?, Int?>>) {
+        var ageable = try {
+            event.block.blockData as Ageable
+        } catch (ex: Exception) {
+            null
         }
-        for (BlockBreak job : BlockBreak.values()) {
-            if (jobsMap.get(job).get(event.getBlock().getType()) != null) {
-                awardXp(event.getPlayer(), jobsMap.get(job).get(event.getBlock().getType()), job);
-            }
+        if (!(ageable == null || ageable.age == 7)) {
+            return
         }
-    }
-    public static void handleJobEvent(BlockPlaceEvent event, Map<BlockPlace, Map<Material, Integer>> jobsMap) throws IOException {
-        for (BlockPlace job : BlockPlace.values()) {
-            if (jobsMap.get(job).get(event.getBlock().getType()) != null) {
-                awardXp(event.getPlayer(), jobsMap.get(job).get(event.getBlock().getType()), job);
-            }
-        }
-    }
-    public static void handleJobEvent(EntityDeathEvent event, Map<MobKill, Map<EntityType, Integer>> jobsMap) throws IOException {
-        for (MobKill job : MobKill.values()) {
-            if (jobsMap.get(job).get(event.getEntity().getType()) != null) {
-                if (event.getEntity().getKiller() == null) { return; }
-                awardXp(event.getEntity().getKiller(), jobsMap.get(job).get(event.getEntity().getType()), job);
+        for (job in BlockBreak.entries) {
+            if (jobsMap[job]!![event.block.type] != null) {
+                Level.awardXp(event.player, jobsMap[job]!![event.block.type]!!, job)
             }
         }
     }
 
-    public static void handleJobEvent(BlockFertilizeEvent event) {
-        if (event.getPlayer() == null) { return; }
-        awardXp(event.getPlayer(), 1, BlockBreak.FARMER); //TODO: make reward configurable in #40
+    @Throws(IOException::class)
+    fun handleJobEvent(event: BlockPlaceEvent, jobsMap: Map<BlockPlace, Map<Material?, Int?>>) {
+        for (job in BlockPlace.entries) {
+            if (jobsMap[job]!![event.block.type] != null) {
+                Level.awardXp(event.player, jobsMap[job]!![event.block.type]!!, job)
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun handleJobEvent(event: EntityDeathEvent, jobsMap: Map<MobKill, Map<EntityType?, Int?>>) {
+        for (job in MobKill.entries) {
+            if (jobsMap[job]!![event.entity.type] != null) {
+                if (event.entity.killer == null) {
+                    return
+                }
+                Level.awardXp(event.entity.killer, jobsMap[job]!![event.entity.type]!!, job)
+            }
+        }
+    }
+
+    fun handleJobEvent(event: BlockFertilizeEvent) {
+        if (event.player == null) {
+            return
+        }
+        Level.awardXp(event.player, 1, BlockBreak.FARMER) //TODO: make reward configurable in #40
     }
 }
