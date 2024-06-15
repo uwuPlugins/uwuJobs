@@ -9,16 +9,11 @@ import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 import java.io.IOException
-import java.util.function.BiFunction
 
 object ConfigService {
     private val plugin: Plugin = JavaPlugin.getPlugin(UwuJobs::class.java)
     private val configurations: MutableMap<String, FileConfiguration> = HashMap()
     private val registeredServices: MutableMap<IConfigurableService, String> = HashMap()
-    fun getConfiguration(s: String?): FileConfiguration? {
-        return configurations[s]
-    }
-
 
     fun loadConfigs(): Boolean {
         plugin.reloadConfig()
@@ -31,11 +26,11 @@ object ConfigService {
 
     @Throws(IOException::class)
     fun registerCustomConfig(fileName: String) {
-        configurations.put(fileName, createCustomConfig(fileName))
+        configurations[fileName] = createCustomConfig(fileName)
     }
 
     private fun reloadConfigs() {
-        configurations.put("default", plugin.config)
+        configurations["default"] = plugin.config
         configurations.replaceAll { s: String, v: FileConfiguration? ->
             try {
                 createCustomConfig(s)
@@ -46,11 +41,11 @@ object ConfigService {
     }
 
     fun registerService(service: IConfigurableService, configName: String) {
-        registeredServices.put(service, configName)
+        registeredServices[service] = configName
         service.reloadConfig(configurations[configName])
     }
 
-    fun reloadServices() {
+    private fun reloadServices() {
         for (service in registeredServices.keys) {
             service.reloadConfig(configurations[registeredServices[service]])
         }

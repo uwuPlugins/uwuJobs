@@ -42,7 +42,7 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         // Setup ACF
         val manager = PaperCommandManager(this)
 
-        manager.commandCompletions.registerCompletion("jobs") { c: BukkitCommandCompletionContext? ->
+        manager.commandCompletions.registerCompletion("jobs") {
             val jobs: MutableSet<String> = HashSet()
             for (job in BlockBreak.entries) {
                 jobs.add(job.name.lowercase(Locale.getDefault()))
@@ -137,32 +137,24 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
                 // player already exists
             }
         }
-
-        /*String[] board = new String[] {
-          "my",
-          "awesome" ,
-          "scoreboard",
-          ":3"
-        };
-        ScoreboardController controller = new ScoreboardController(event.getPlayer(), board);*/
     }
 
     @EventHandler
     @Throws(IOException::class)
     fun onBlockMined(event: BlockBreakEvent) {
-        Jobs.handleJobEvent(event, BlockSets.Companion.breakJobsMap)
+        Jobs.handleJobEvent(event, BlockSets.breakJobsMap)
     }
 
     @EventHandler
     @Throws(IOException::class)
     fun onBlockPlace(event: BlockPlaceEvent) {
-        Jobs.handleJobEvent(event, BlockSets.Companion.placeJobsMap)
+        Jobs.handleJobEvent(event, BlockSets.placeJobsMap)
     }
 
     @EventHandler
     @Throws(IOException::class)
     fun onEntityDeath(event: EntityDeathEvent) {
-        Jobs.handleJobEvent(event, BlockSets.Companion.killJobsMap)
+        Jobs.handleJobEvent(event, BlockSets.killJobsMap)
     }
 
     @EventHandler

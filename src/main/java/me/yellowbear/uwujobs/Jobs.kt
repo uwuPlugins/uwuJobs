@@ -16,7 +16,7 @@ import java.io.IOException
 object Jobs {
     @Throws(IOException::class)
     fun handleJobEvent(event: BlockBreakEvent, jobsMap: Map<BlockBreak, Map<Material?, Int?>>) {
-        var ageable = try {
+        val ageable = try {
             event.block.blockData as Ageable
         } catch (ex: Exception) {
             null

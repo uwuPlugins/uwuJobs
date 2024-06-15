@@ -13,6 +13,7 @@ class BlockSets : IConfigurableService {
         loadConfig(file)
     }
 
+    //TODO: Remove duplicate code
     companion object {
         var breakJobsMap: Map<BlockBreak, Map<Material?, Int?>> = HashMap()
         var placeJobsMap: Map<BlockPlace, Map<Material?, Int?>> = HashMap()

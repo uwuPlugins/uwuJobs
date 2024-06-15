@@ -131,7 +131,7 @@ class JobsCommand : BaseCommand() {
             var i = 1
             for (row in rows) {
                 val playerLeaderboard = Bukkit.getOfflinePlayer(UUID.fromString(row.getString("id")))
-                var playerName = playerLeaderboard.name
+                val playerName = playerLeaderboard.name
 
                 val parsed = msg.deserialize(
                     "<gray><rank>. <player>: xp <level>",

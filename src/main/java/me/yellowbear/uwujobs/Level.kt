@@ -14,6 +14,8 @@ import java.sql.SQLException
 import java.util.*
 
 object Level {
+    //TODO: Remove duplicate code
+
     fun awardXp(player: Player?, amount: Int, job: BlockBreak) {
         val msg = MiniMessage.miniMessage()
         var xp: Int
