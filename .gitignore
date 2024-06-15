@@ -12,6 +12,10 @@
 .idea/**/dictionaries
 .idea/**/shelf
 
+# Consistency across environments (+less secrets being pushed to the VCS)
+# If really needed, please just exclude specific files from the gitignore
+.idea/*
+
 # AWS User-specific
 .idea/**/aws.xml
 
