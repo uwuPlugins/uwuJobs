@@ -30,7 +30,7 @@ class JobsCommand : BaseCommand() {
             Placeholder.component("pl", Component.text("uwuJobs", NamedTextColor.GOLD)),
             Placeholder.component(
                 "v",
-                Component.text(, NamedTextColor.GOLD)
+                Component.text(UwuJobs().pluginMeta.version, NamedTextColor.GOLD)
             ),
             Placeholder.component("author1", Component.text("yellowbear", NamedTextColor.GOLD)),
             Placeholder.component("author2", Component.text("mapetr", NamedTextColor.GOLD))
