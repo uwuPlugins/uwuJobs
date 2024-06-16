@@ -7,56 +7,41 @@ import me.yellowbear.uwujobs.jobs.MobKill
 import org.bukkit.Material
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.entity.EntityType
+import java.util.*
 
 class BlockSets : IConfigurableService {
     override fun reloadConfig(file: FileConfiguration?) {
         loadConfig(file)
     }
 
-    //TODO: Remove duplicate code
     companion object {
-        var breakJobsMap: Map<BlockBreak, Map<Material?, Int?>> = HashMap()
-        var placeJobsMap: Map<BlockPlace, Map<Material?, Int?>> = HashMap()
-        var killJobsMap: Map<MobKill, Map<EntityType?, Int?>> = HashMap()
+        var breakJobsMap: Map<BlockBreak, Map<Material?, Int?>> = EnumMap(BlockBreak::class.java)
+        var placeJobsMap: Map<BlockPlace, Map<Material?, Int?>> = EnumMap(BlockPlace::class.java)
+        var killJobsMap: Map<MobKill, Map<EntityType?, Int?>> = EnumMap(MobKill::class.java)
         fun loadConfig(file: FileConfiguration?) {
-            val breakMap: MutableMap<BlockBreak, Map<Material?, Int?>> = HashMap()
-            for (job in BlockBreak.entries) {
-                val section = file!!.getConfigurationSection(job.name)
-                val tempMap: MutableMap<Material?, Int?> = HashMap()
-                if (section != null) {
-                    for (key in section.getKeys(true)) {
-                        tempMap[Material.getMaterial(key)] = file.getInt(job.name + "." + key)
-                    }
-                    breakMap[job] = tempMap
-                }
-            }
-            breakJobsMap = breakMap
+            breakJobsMap = loadMap(file, BlockBreak.entries.toSet(), Material::getMaterial)
+            placeJobsMap = loadMap(file, BlockPlace.entries.toSet(), Material::getMaterial)
+            killJobsMap = loadMap(file, MobKill.entries.toSet(), EntityType::fromName)
+        }
 
-            val placeMap: MutableMap<BlockPlace, Map<Material?, Int?>> = HashMap()
-            for (job in BlockPlace.entries) {
-                val section = file!!.getConfigurationSection(job.name)
-                val tempMap: MutableMap<Material?, Int?> = HashMap()
+        private fun <T, U> loadMap(
+            file: FileConfiguration?,
+            entries: Set<T>,
+            convert: (String) -> U?
+        ): Map<T, Map<U?, Int?>> {
+            val map: MutableMap<T, Map<U?, Int?>> = HashMap()
+            for (job in entries) {
+                val section = file!!.getConfigurationSection(job.toString())
+                val tempMap: MutableMap<U?, Int?> = HashMap()
                 if (section != null) {
                     for (key in section.getKeys(true)) {
-                        tempMap[Material.getMaterial(key)] = file.getInt(job.name + "." + key)
+                        tempMap[convert(key)] = file.getInt(job.toString() + "." + key)
                     }
-                    placeMap[job] = tempMap
+                    map[job] = tempMap
                 }
             }
-            placeJobsMap = placeMap
-
-            val killMap: MutableMap<MobKill, Map<EntityType?, Int?>> = HashMap()
-            for (job in MobKill.entries) {
-                val section = file!!.getConfigurationSection(job.name)
-                val tempMap: MutableMap<EntityType?, Int?> = HashMap()
-                if (section != null) {
-                    for (key in section.getKeys(true)) {
-                        tempMap[EntityType.fromName(key)] = file.getInt(job.name + "." + key)
-                    }
-                    killMap[job] = tempMap
-                }
-            }
-            killJobsMap = killMap
+            return map
         }
     }
+
 }
