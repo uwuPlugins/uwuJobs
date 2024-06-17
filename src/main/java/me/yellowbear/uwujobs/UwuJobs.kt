@@ -16,7 +16,7 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
     override fun onEnable() {
         saveDefaultConfig()
 
-        Config().loadJobs()
+        Config.loadJobs()
 
         try {
             server.pluginManager.registerEvents(UwuJobs(), this)
@@ -52,6 +52,13 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
-        for (job in Config().jobs) {}
+        val jobs = Config.jobs
+        for (job in jobs) {
+            for (reward in job.rewards) {
+                if (reward.block != null && reward.block == event.block.type.name) {
+                    Level.awardXp(event.player, reward.amount, job)
+                }
+            }
+        }
     }
 }

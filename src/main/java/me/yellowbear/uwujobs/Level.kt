@@ -13,6 +13,7 @@ import java.util.*
 
 object Level {
     fun awardXp(player: Player?, amount: Int, job: Job) {
+        UwuJobs().logger.info("Awarding $amount XP to ${player!!.name} for ${job.name}")
         val msg = MiniMessage.miniMessage()
         var xp: Int
         try {

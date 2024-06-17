@@ -7,14 +7,15 @@ import me.yellowbear.uwujobs.jobs.Job
 import org.bukkit.configuration.file.FileConfiguration
 import java.io.File
 
-class Config {
-    var jobs = emptyArray<Job>()
+object Config {
+    var jobs: Array<Job> = emptyArray()
 
     fun loadJobs() {
         UwuJobs().saveResource("jobs.yml", false)
 
         val jobsYaml = File(UwuJobs().dataFolder, "jobs.yml").readText()
-        UwuJobs().logger.info(jobsYaml)
-        jobs = Yaml.default.decodeFromString(Config.serializer(), jobsYaml).jobs
+        val config = Yaml.default.decodeFromString(Config.serializer(), jobsYaml)
+        jobs = config.jobs
+        UwuJobs().logger.info("Loaded ${jobs.size} jobs")
     }
 }
