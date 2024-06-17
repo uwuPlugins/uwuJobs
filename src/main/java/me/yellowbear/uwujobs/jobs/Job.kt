@@ -4,8 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Reward(
-    val block: String? = null,
-    val entity: String? = null,
+    val brokenBlocks: List<String>? = null,
+    val placedBlocks: List<String>? = null,
+    val killedEntities: List<String>? = null,
     val amount: Int
 )
 

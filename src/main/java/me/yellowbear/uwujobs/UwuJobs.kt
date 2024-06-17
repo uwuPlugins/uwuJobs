@@ -9,6 +9,8 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.sql.SQLException
@@ -67,11 +69,41 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
-        val jobs = Config.jobs
-        for (job in jobs) {
+        for (job in Config.jobs) {
             for (reward in job.rewards) {
-                if (reward.block != null && reward.block == event.block.type.name) {
-                    Level.awardXp(event.player, reward.amount, job)
+                if (reward.brokenBlocks == null) continue
+                for (block in reward.brokenBlocks) {
+                    if (block == event.block.type.name) {
+                        Level.awardXp(event.player, reward.amount, job)
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    fun onBlockPlace(event: BlockPlaceEvent) {
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.placedBlocks == null) continue
+                for (block in reward.placedBlocks) {
+                    if (block == event.block.type.name) {
+                        Level.awardXp(event.player, reward.amount, job)
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    fun onEntityDeath(event: EntityDeathEvent) {
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.killedEntities == null) continue
+                for (entity in reward.killedEntities) {
+                    if (entity == event.entity.type.name) {
+                        Level.awardXp(event.entity.killer, reward.amount, job)
+                    }
                 }
             }
         }

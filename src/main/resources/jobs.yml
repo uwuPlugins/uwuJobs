@@ -1,5 +1,18 @@
 jobs:
   - name: Miner
     rewards:
-      - block: STONE
+      - brokenBlocks:
+          - STONE
+          - COBBLESTONE
+        amount: 1
+  - name: Hunter
+    rewards:
+      - killedEntities:
+          - ZOMBIE
+          - SKELETON
+        amount: 1
+  - name: Builder
+    rewards:
+      - placedBlocks:
+          - OAK_PLANKS
         amount: 1
