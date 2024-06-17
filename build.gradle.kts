@@ -25,7 +25,7 @@ dependencies {
     implementation("net.kyori:adventure-api:4.17.0")
     api(libs.org.jetbrains.kotlin.kotlin.stdlib.jdk8)
     testImplementation(libs.org.jetbrains.kotlin.kotlin.test)
-    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
     implementation(kotlin("stdlib-jdk8"))
 }
 
