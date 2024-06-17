@@ -13,27 +13,14 @@ import java.util.*
 
 object Level {
     fun awardXp(player: Player?, amount: Int, job: Job) {
-        UwuJobs().logger.info("Awarding $amount XP to ${player!!.name} for ${job.name}")
+        if (player == null) return;
         val msg = MiniMessage.miniMessage()
         var xp: Int
         try {
-            val row = DB.getFirstRow(
-                String.format(
-                    "select xp from %s where id = '%s'",
-                    job.name.lowercase(Locale.getDefault()),
-                    player!!.uniqueId
-                )
-            )
+            val row = DB.getFirstRow("SELECT xp FROM ${job.name.lowercase()} WHERE id = '${player.uniqueId}'")
             xp = row.getInt("xp")
             xp += amount
-            DB.executeUpdate(
-                String.format(
-                    "update %s set xp = %s where id = '%s'",
-                    job.name.lowercase(Locale.getDefault()),
-                    xp,
-                    player.uniqueId
-                )
-            )
+            DB.executeUpdate("UPDATE ${job.name.lowercase()} SET xp = ${xp} WHERE id = '${player.uniqueId}'")
         } catch (e: SQLException) {
             throw RuntimeException(e)
         }
