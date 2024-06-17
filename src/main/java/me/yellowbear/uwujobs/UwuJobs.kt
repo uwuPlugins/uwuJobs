@@ -16,7 +16,7 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
     override fun onEnable() {
         saveDefaultConfig()
 
-        Config().load()
+        Config().loadJobs()
 
         try {
             server.pluginManager.registerEvents(UwuJobs(), this)
@@ -52,7 +52,6 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
-        for (job in Config().jobs) {
-
+        for (job in Config().jobs) {}
     }
 }

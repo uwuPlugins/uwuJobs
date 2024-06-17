@@ -1,19 +1,20 @@
 package me.yellowbear.uwujobs
 
 import com.charleskorn.kaml.Yaml
+import kotlinx.serialization.decodeFromString
 import me.yellowbear.uwujobs.interfaces.Config
 import me.yellowbear.uwujobs.jobs.Job
 import org.bukkit.configuration.file.FileConfiguration
+import java.io.File
 
 class Config {
-    private val config: FileConfiguration = UwuJobs().config
-    var jobs = arrayOf<Job>()
+    var jobs = emptyArray<Job>()
 
-    fun load() {
-        val configString = config.saveToString()
+    fun loadJobs() {
+        UwuJobs().saveResource("jobs.yml", false)
 
-        val result = Yaml.default.decodeFromString(Config.serializer(), configString)
-        jobs = result.jobs
+        val jobsYaml = File(UwuJobs().dataFolder, "jobs.yml").readText()
+        UwuJobs().logger.info(jobsYaml)
+        jobs = Yaml.default.decodeFromString(Config.serializer(), jobsYaml).jobs
     }
 }
-

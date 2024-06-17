@@ -1,0 +1,5 @@
+jobs:
+  - name: Miner
+    rewards:
+      - block: STONE
+        amount: 1
