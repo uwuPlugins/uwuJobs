@@ -18,4 +18,8 @@ object Config {
         jobs = config.jobs
         UwuJobs().logger.info("Loaded ${jobs.size} jobs")
     }
+
+    fun getJob(name: String): Job? {
+        return jobs.find { it.name == name || it.name.lowercase() == name }
+    }
 }

@@ -1,6 +1,7 @@
 package me.yellowbear.uwujobs.jobs
 
 import kotlinx.serialization.Serializable
+import me.yellowbear.uwujobs.interfaces.Config
 
 @Serializable
 data class Reward(

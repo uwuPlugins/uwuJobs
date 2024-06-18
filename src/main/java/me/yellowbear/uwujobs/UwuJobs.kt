@@ -5,6 +5,7 @@ import co.aikar.idb.DB
 import co.aikar.idb.Database
 import co.aikar.idb.DatabaseOptions
 import co.aikar.idb.PooledDatabaseOptions
+import me.yellowbear.uwujobs.commands.Jobs
 import org.bukkit.command.CommandExecutor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -30,12 +31,16 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         // Setup ACF
         val manager = PaperCommandManager(this)
 
+        manager.registerCommand(Jobs())
+
         manager.commandCompletions.registerCompletion("jobs") {
             val jobs: MutableSet<String> = HashSet()
+            for (job in Config.jobs) {
+                jobs.add(job.name.lowercase())
+            }
             jobs.add("all")
             jobs
         }
-
 
         // Setup database
         val options = DatabaseOptions.builder().sqlite("${this.dataFolder}/uwu.db").build()
