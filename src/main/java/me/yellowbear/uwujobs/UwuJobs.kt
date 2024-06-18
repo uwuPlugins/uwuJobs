@@ -43,7 +43,7 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         }
 
         // Setup database
-        val options = DatabaseOptions.builder().sqlite("${this.dataFolder}/uwu.db").build()
+        val options = DatabaseOptions.builder().sqlite("${this.dataFolder}/uwu.db").logger(UwuJobs().logger).build()
         val db: Database = PooledDatabaseOptions.builder().options(options).createHikariDatabase()
         DB.setGlobalDatabase(db)
 

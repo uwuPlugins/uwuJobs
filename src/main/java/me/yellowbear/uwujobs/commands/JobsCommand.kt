@@ -36,18 +36,14 @@ class Jobs : BaseCommand() {
         )
         player.sendMessage(parsed)
 
-        try {
-            for (job in Config.jobs) {
-                val row = DB.getFirstRow("SELECT xp FROM ${job.name.lowercase()} WHERE id = ${player.uniqueId}")
-                parsed = msg.deserialize(
-                    "<gray>You have <xp> XP in proffesion <job>",
-                    Placeholder.component("xp", Component.text(row.getInt("xp"), NamedTextColor.GOLD)),
-                    Placeholder.component("job", Component.text(job.name, NamedTextColor.GOLD))
-                )
-                player.sendMessage(parsed)
-            }
-        } catch (e: SQLException) {
-            throw RuntimeException(e)
+        for (job in Config.jobs) {
+            val row = DB.getFirstRow("SELECT xp FROM ${job.name.lowercase()} WHERE id = '${player.uniqueId}'")
+            parsed = msg.deserialize(
+                "<gray>You have <xp> XP in proffesion <job>",
+                Placeholder.component("xp", Component.text(row.getInt("xp"), NamedTextColor.GOLD)),
+                Placeholder.component("job", Component.text(job.name, NamedTextColor.GOLD))
+            )
+            player.sendMessage(parsed)
         }
     }
 
@@ -74,15 +70,17 @@ class Jobs : BaseCommand() {
                 queryBuilder.append("SELECT id, SUM(xp) AS xp FROM (")
 
                 for (jobEnum in Config.jobs) {
-                    queryBuilder.append("SELECT id, xp FROM ${jobEnum.name.lowercase()} UNION ALL")
+                    queryBuilder.append("SELECT id, xp FROM ${jobEnum.name.lowercase()} WHERE NOT xp = 0 UNION ALL ")
                 }
 
                 queryBuilder.setLength(queryBuilder.length - " UNION ALL ".length)
                 queryBuilder.append(") GROUP BY id ORDER BY xp DESC LIMIT 5")
 
+                UwuJobs().logger.info(queryBuilder.toString())
+
                 rows = DB.getResults(queryBuilder.toString())
             } else {
-                rows = DB.getResults("SELECT id, xp FROM ${job.lowercase()} ORDER BY xp DESC LIMIT 5")
+                rows = DB.getResults("SELECT id, xp FROM ${job.lowercase()} WHERE NOT xp = 0 ORDER BY xp DESC LIMIT 5")
             }
 
             player.sendMessage(
@@ -94,7 +92,8 @@ class Jobs : BaseCommand() {
             var i = 1
             for (row in rows) {
                 val playerLeaderboard = Bukkit.getOfflinePlayer(
-                    UUID.fromString(row.getString("id")))
+                    UUID.fromString(row.getString("id"))
+                )
                 val playerName = playerLeaderboard.name
 
                 val parsed = msg.deserialize(
