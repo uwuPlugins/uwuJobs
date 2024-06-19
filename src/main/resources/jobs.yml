@@ -16,3 +16,8 @@ jobs:
       - placedBlocks:
           - OAK_PLANKS
         amount: 1
+  - name: Farmer
+    rewards:
+      - fertilizedBlocks:
+          - WHEAT
+        amount: 1

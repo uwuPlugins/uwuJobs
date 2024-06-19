@@ -10,6 +10,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockFertilizeEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
@@ -43,7 +44,7 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         }
 
         // Setup database
-        val options = DatabaseOptions.builder().sqlite("${this.dataFolder}/uwu.db").logger(UwuJobs().logger).build()
+        val options = DatabaseOptions.builder().sqlite("${this.dataFolder}/uwu.db").build()
         val db: Database = PooledDatabaseOptions.builder().options(options).createHikariDatabase()
         DB.setGlobalDatabase(db)
 
@@ -74,6 +75,7 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
+        //TODO: Check for crop age
         for (job in Config.jobs) {
             for (reward in job.rewards) {
                 if (reward.brokenBlocks == null) continue
@@ -108,6 +110,23 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
                 for (entity in reward.killedEntities) {
                     if (entity == event.entity.type.name) {
                         Level.awardXp(event.entity.killer, reward.amount, job)
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    fun onFertilize(event: BlockFertilizeEvent) {
+        UwuJobs().logger.info("Fertilized block")
+        UwuJobs().logger.info(event.block.type.name)
+        if (event.player == null) return
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.fertilizedBlocks == null) continue
+                for (block in reward.fertilizedBlocks) {
+                    if (block == event.block.type.name) {
+                        Level.awardXp(event.player, reward.amount, job)
                     }
                 }
             }
