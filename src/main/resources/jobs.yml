@@ -153,7 +153,6 @@ jobs:
       - killedEntities:
           - ILLUSIONER
           - ELDER_GUARDIAN
-          -
         amount: 20
       - killedEntities:
           - WITHER
