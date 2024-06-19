@@ -1,5 +1,5 @@
 name: uwuJobs
-version: '2024.615.0'
+version: '2024.619.0'
 main: me.yellowbear.uwujobs.UwuJobs
 api-version: '1.21'
 folia-supported: true

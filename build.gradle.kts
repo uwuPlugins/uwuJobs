@@ -32,7 +32,7 @@ dependencies {
 }
 
 group = "me.yellowbear"
-version = "2024.615.0"
+version = "2024.619.0"
 description = "uwuJobs"
 
 java.sourceCompatibility = JavaVersion.VERSION_21
