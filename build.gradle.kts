@@ -8,6 +8,7 @@ plugins {
     `java-library`
     `maven-publish`
     kotlin("jvm")
+    kotlin("plugin.serialization") version "2.0.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -23,6 +24,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("co.aikar:idb-core:1.0.0-SNAPSHOT")
     implementation("net.kyori:adventure-api:4.17.0")
+    implementation("com.charleskorn.kaml:kaml:0.60.0")
     api(libs.org.jetbrains.kotlin.kotlin.stdlib.jdk8)
     testImplementation(libs.org.jetbrains.kotlin.kotlin.test)
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT")

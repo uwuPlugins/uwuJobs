@@ -1,16 +1,11 @@
 package me.yellowbear.uwujobs
 
-import co.aikar.commands.BukkitCommandCompletionContext
 import co.aikar.commands.PaperCommandManager
 import co.aikar.idb.DB
 import co.aikar.idb.Database
 import co.aikar.idb.DatabaseOptions
 import co.aikar.idb.PooledDatabaseOptions
-import me.yellowbear.uwujobs.commands.JobsCommand
-import me.yellowbear.uwujobs.jobs.BlockBreak
-import me.yellowbear.uwujobs.jobs.BlockPlace
-import me.yellowbear.uwujobs.jobs.MobKill
-import me.yellowbear.uwujobs.services.ConfigService
+import me.yellowbear.uwujobs.commands.Jobs
 import org.bukkit.command.CommandExecutor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -20,19 +15,12 @@ import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
-import java.io.IOException
 import java.sql.SQLException
-import java.util.*
 
 class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
     override fun onEnable() {
-        try {
-            ConfigService.registerCustomConfig("blocks.yml")
-        } catch (e: IOException) {
-            throw RuntimeException(e)
-        }
-        ConfigService.registerService(BlockSets(), "blocks.yml")
-        ConfigService.loadConfigs()
+        Config.loadJobs()
+
         try {
             server.pluginManager.registerEvents(UwuJobs(), this)
         } catch (e: Exception) {
@@ -42,46 +30,25 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         // Setup ACF
         val manager = PaperCommandManager(this)
 
+        manager.registerCommand(Jobs())
+
         manager.commandCompletions.registerCompletion("jobs") {
             val jobs: MutableSet<String> = HashSet()
-            for (job in BlockBreak.entries) {
-                jobs.add(job.name.lowercase(Locale.getDefault()))
+            for (job in Config.jobs) {
+                jobs.add(job.name.lowercase())
             }
             jobs.add("all")
             jobs
         }
 
-        manager.registerCommand(JobsCommand())
-
         // Setup database
-        val options = DatabaseOptions.builder().sqlite("plugins/uwuJobs/uwu.db").build()
+        val options = DatabaseOptions.builder().sqlite("${this.dataFolder}/uwu.db").build()
         val db: Database = PooledDatabaseOptions.builder().options(options).createHikariDatabase()
         DB.setGlobalDatabase(db)
 
         try {
-            for (job in BlockBreak.entries) {
-                DB.executeInsert(
-                    String.format(
-                        "CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)",
-                        job.name.lowercase(Locale.getDefault())
-                    )
-                )
-            }
-            for (job in BlockPlace.entries) {
-                DB.executeInsert(
-                    String.format(
-                        "CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)",
-                        job.name.lowercase(Locale.getDefault())
-                    )
-                )
-            }
-            for (job in MobKill.entries) {
-                DB.executeInsert(
-                    String.format(
-                        "CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)",
-                        job.name.lowercase(Locale.getDefault())
-                    )
-                )
+            for (job in Config.jobs) {
+                DB.executeInsert("CREATE TABLE IF NOT EXISTS ${job.name.lowercase()} (id TEXT UNIQUE, xp INT)")
             }
         } catch (e: SQLException) {
             throw RuntimeException(e)
@@ -95,70 +62,70 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
 
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
-        for (job in BlockBreak.entries) {
+        for (job in Config.jobs) {
             try {
-                DB.executeInsert(
-                    String.format(
-                        "INSERT INTO %s (id, xp) VALUES ('%s', %s)",
-                        job.name.lowercase(Locale.getDefault()),
-                        event.player.uniqueId,
-                        1
-                    )
-                )
+                DB.executeInsert("INSERT OR IGNORE INTO ${job.name.lowercase()} (id, xp) VALUES ('${event.player.uniqueId}', 0)")
             } catch (e: SQLException) {
-                // player already exists
-            }
-        }
-        for (job in BlockPlace.entries) {
-            try {
-                DB.executeInsert(
-                    String.format(
-                        "INSERT INTO %s (id, xp) VALUES ('%s', %s)",
-                        job.name.lowercase(Locale.getDefault()),
-                        event.player.uniqueId,
-                        1
-                    )
-                )
-            } catch (e: SQLException) {
-                // player already exists
-            }
-        }
-        for (job in MobKill.entries) {
-            try {
-                DB.executeInsert(
-                    String.format(
-                        "INSERT INTO %s (id, xp) VALUES ('%s', %s)",
-                        job.name.lowercase(Locale.getDefault()),
-                        event.player.uniqueId,
-                        1
-                    )
-                )
-            } catch (e: SQLException) {
-                // player already exists
+                throw RuntimeException(e)
             }
         }
     }
 
     @EventHandler
-    @Throws(IOException::class)
-    fun onBlockMined(event: BlockBreakEvent) {
-        Jobs.handleJobEvent(event, BlockSets.breakJobsMap)
+    fun onBlockBreak(event: BlockBreakEvent) {
+        //TODO: Check for crop age
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.brokenBlocks == null) continue
+                for (block in reward.brokenBlocks) {
+                    if (block == event.block.type.name) {
+                        Level.awardXp(event.player, reward.amount, job)
+                    }
+                }
+            }
+        }
     }
 
     @EventHandler
-    @Throws(IOException::class)
     fun onBlockPlace(event: BlockPlaceEvent) {
-        Jobs.handleJobEvent(event, BlockSets.placeJobsMap)
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.placedBlocks == null) continue
+                for (block in reward.placedBlocks) {
+                    if (block == event.block.type.name) {
+                        Level.awardXp(event.player, reward.amount, job)
+                    }
+                }
+            }
+        }
     }
 
     @EventHandler
-    @Throws(IOException::class)
     fun onEntityDeath(event: EntityDeathEvent) {
-        Jobs.handleJobEvent(event, BlockSets.killJobsMap)
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.killedEntities == null) continue
+                for (entity in reward.killedEntities) {
+                    if (entity == event.entity.type.name) {
+                        Level.awardXp(event.entity.killer, reward.amount, job)
+                    }
+                }
+            }
+        }
     }
 
     @EventHandler
     fun onFertilize(event: BlockFertilizeEvent) {
-        Jobs.handleJobEvent(event)
+        if (event.player == null) return
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.fertilizedBlocks == null) continue
+                for (block in reward.fertilizedBlocks) {
+                    if (block == event.block.type.name) {
+                        Level.awardXp(event.player, reward.amount, job)
+                    }
+                }
+            }
+        }
     }
 }
