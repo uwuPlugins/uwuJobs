@@ -1,7 +1,7 @@
 name: uwuJobs
 version: '2024.615.0'
 main: me.yellowbear.uwujobs.UwuJobs
-api-version: '1.20'
+api-version: '1.21'
 folia-supported: true
 authors: [yellowbear, mapetr]
 website: https://xdd.moe/
