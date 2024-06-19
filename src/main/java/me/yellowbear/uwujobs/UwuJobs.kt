@@ -19,8 +19,6 @@ import java.sql.SQLException
 
 class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
     override fun onEnable() {
-        saveDefaultConfig()
-
         Config.loadJobs()
 
         try {
@@ -118,8 +116,6 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
 
     @EventHandler
     fun onFertilize(event: BlockFertilizeEvent) {
-        UwuJobs().logger.info("Fertilized block")
-        UwuJobs().logger.info(event.block.type.name)
         if (event.player == null) return
         for (job in Config.jobs) {
             for (reward in job.rewards) {

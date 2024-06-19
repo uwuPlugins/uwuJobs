@@ -76,8 +76,6 @@ class Jobs : BaseCommand() {
                 queryBuilder.setLength(queryBuilder.length - " UNION ALL ".length)
                 queryBuilder.append(") GROUP BY id ORDER BY xp DESC LIMIT 5")
 
-                UwuJobs().logger.info(queryBuilder.toString())
-
                 rows = DB.getResults(queryBuilder.toString())
             } else {
                 rows = DB.getResults("SELECT id, xp FROM ${job.lowercase()} WHERE NOT xp = 0 ORDER BY xp DESC LIMIT 5")
