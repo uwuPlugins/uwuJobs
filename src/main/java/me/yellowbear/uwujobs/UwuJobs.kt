@@ -11,6 +11,8 @@ import me.yellowbear.uwujobs.jobs.BlockBreak
 import me.yellowbear.uwujobs.jobs.BlockPlace
 import me.yellowbear.uwujobs.jobs.MobKill
 import me.yellowbear.uwujobs.services.ConfigService
+import me.yellowbear.uwujobs.services.UpdaterService
+import me.yellowbear.uwujobs.services.UpdaterService.checkForUpdates
 import org.bukkit.command.CommandExecutor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -28,11 +30,17 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
     override fun onEnable() {
         try {
             ConfigService.registerCustomConfig("blocks.yml")
+            ConfigService.registerCustomConfig("default")
         } catch (e: IOException) {
             throw RuntimeException(e)
         }
         ConfigService.registerService(BlockSets(), "blocks.yml")
+        ConfigService.registerService(UpdaterService, "default")
         ConfigService.loadConfigs()
+
+        println("up to date?")
+        println(this.checkForUpdates())
+
         try {
             server.pluginManager.registerEvents(UwuJobs(), this)
         } catch (e: Exception) {
