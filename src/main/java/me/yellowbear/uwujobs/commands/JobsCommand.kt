@@ -23,7 +23,7 @@ import java.util.*
 
 @CommandAlias("jobs")
 class Jobs : BaseCommand() {
-    var msg: MiniMessage = MiniMessage.miniMessage()
+    private var msg: MiniMessage = MiniMessage.miniMessage()
 
     @Default
     fun onDefault(player: Player) {
