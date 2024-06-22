@@ -1,10 +1,8 @@
 package me.yellowbear.uwujobs
 
 import com.charleskorn.kaml.Yaml
-import kotlinx.serialization.decodeFromString
 import me.yellowbear.uwujobs.interfaces.Config
 import me.yellowbear.uwujobs.jobs.Job
-import org.bukkit.configuration.file.FileConfiguration
 import java.io.File
 
 object Config {
