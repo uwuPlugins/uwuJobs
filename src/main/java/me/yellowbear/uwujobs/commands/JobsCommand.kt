@@ -17,14 +17,24 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
-import java.awt.print.Paper
 import java.sql.SQLException
 import java.util.*
 
-@CommandAlias("jobs")
-class Jobs : BaseCommand() {
-    var msg: MiniMessage = MiniMessage.miniMessage()
+/**
+ * General command class for job related purposes.
+ */
+@CommandAlias("jobs") //Add "/jobs" alias to the command
+class Jobs : BaseCommand() { //Inherit basic command properties
+    /**
+     * Object representing the final message returned to the command sender.
+     */
+    private var msg: MiniMessage = MiniMessage.miniMessage()
 
+    /**
+     * Invoked when the '/jobs' command is used without any arguments.
+     *
+     * @param player Represents the command sender
+     */
     @Default
     fun onDefault(player: Player) {
         var parsed = msg.deserialize(
@@ -33,20 +43,26 @@ class Jobs : BaseCommand() {
             Placeholder.component("v", Component.text(UwuJobs().pluginMeta.version, NamedTextColor.GOLD)),
             Placeholder.component("author1", Component.text("yellowbear", NamedTextColor.GOLD)),
             Placeholder.component("author2", Component.text("mapetr", NamedTextColor.GOLD))
-        )
-        player.sendMessage(parsed)
+        ) // Create a plugin info string and deserialize it into a text component.
+        player.sendMessage(parsed) //Send the deserialized message (plugin info).
 
-        for (job in Config.jobs) {
-            val row = DB.getFirstRow("SELECT xp FROM ${job.name.lowercase()} WHERE id = '${player.uniqueId}'")
+        for (job in Config.jobs) { // For every existing job
+            val row = DB.getFirstRow("SELECT xp FROM ${job.name.lowercase()} WHERE id = '${player.uniqueId}'") //Get player's experience from the database
             parsed = msg.deserialize(
                 "<gray>You have <xp> XP in proffesion <job>",
                 Placeholder.component("xp", Component.text(row.getInt("xp"), NamedTextColor.GOLD)),
                 Placeholder.component("job", Component.text(job.name, NamedTextColor.GOLD))
-            )
-            player.sendMessage(parsed)
+            ) //Insert the value into a string and deserialize it to a text component
+            player.sendMessage(parsed) //Send the deserialized message (job stats).
         }
     }
 
+    /**
+     * Invoked when the '/jobs' command is used with 'top' as the first argument.
+     *
+     * @param player Represents the command sender
+     * @param job String representation of the second argument
+     */
     @Subcommand("top")
     @Syntax("<job>")
     @CommandCompletion("@jobs")
@@ -65,6 +81,7 @@ class Jobs : BaseCommand() {
 
             val rows: List<DbRow>
 
+            // Check if the jobs argument is "all"
             if (job.equals("all", ignoreCase = true)) {
                 val queryBuilder = StringBuilder()
                 queryBuilder.append("SELECT id, SUM(xp) AS xp FROM (")
@@ -81,12 +98,14 @@ class Jobs : BaseCommand() {
                 rows = DB.getResults("SELECT id, xp FROM ${job.lowercase()} WHERE NOT xp = 0 ORDER BY xp DESC LIMIT 5")
             }
 
+            // Send message heading
             player.sendMessage(
                 msg.deserialize(
                     "<white><bold>Top 5 players in <job>",
                     Placeholder.component("job", Component.text(job, NamedTextColor.GOLD))
                 )
             )
+            // Process all the values extracted from the database
             var i = 1
             for (row in rows) {
                 val playerLeaderboard = Bukkit.getOfflinePlayer(
