@@ -11,7 +11,19 @@ import org.bukkit.entity.Player
 import java.sql.SQLException
 import java.util.*
 
+/**
+ * Service responsible for actions regarding levels.
+ *
+ * @property awardXp Awards a player with given amount of XP in a given job.
+ */
 object Level {
+    /**
+     * Awards a player with given amount of XP in a given job.
+     *
+     * @param player Target player.
+     * @param amount Amount of XP the target player is to receive.
+     * @param job The target job to which the XP will be awarded.
+     */
     fun awardXp(player: Player?, amount: Int, job: Job) {
         if (player == null) return;
         val msg = MiniMessage.miniMessage()
