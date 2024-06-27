@@ -43,7 +43,6 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         }
 
         // Setup database
-        logger.info(Config.config.toString())
         val options = if (Config.config.use_mysql) {
             DatabaseOptions.builder().mysql(Config.config.mysql_username, Config.config.mysql_password, Config.config.mysql_database, "${Config.config.mysql_host}:${Config.config.mysql_port}").build()
         } else {
@@ -70,7 +69,11 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
     fun onPlayerJoin(event: PlayerJoinEvent) {
         for (job in Config.jobs) {
             try {
-                DB.executeInsert("INSERT OR IGNORE INTO ${job.name.lowercase()} (id, xp) VALUES ('${event.player.uniqueId}', 0)")
+                if (Config.config.use_mysql) {
+                    DB.executeInsert("INSERT IGNORE INTO ${job.name.lowercase()} (id, xp) VALUES ('${event.player.uniqueId}', 0)")
+                } else {
+                    DB.executeInsert("INSERT OR IGNORE INTO ${job.name.lowercase()} (id, xp) VALUES ('${event.player.uniqueId}', 0)")
+                }
             } catch (e: SQLException) {
                 throw RuntimeException(e)
             }
