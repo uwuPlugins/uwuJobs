@@ -20,6 +20,7 @@ import java.sql.SQLException
 class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
     override fun onEnable() {
         Config.loadJobs()
+        Config.loadConfig()
 
         try {
             server.pluginManager.registerEvents(UwuJobs(), this)
@@ -42,7 +43,12 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         }
 
         // Setup database
-        val options = DatabaseOptions.builder().sqlite("${this.dataFolder}/uwu.db").build()
+        logger.info(Config.config.toString())
+        val options = if (Config.config.use_mysql) {
+            DatabaseOptions.builder().mysql(Config.config.mysql_username, Config.config.mysql_password, Config.config.mysql_database, "${Config.config.mysql_host}:${Config.config.mysql_port}").build()
+        } else {
+            DatabaseOptions.builder().sqlite("${this.dataFolder}/uwu.db").build()
+        }
         val db: Database = PooledDatabaseOptions.builder().options(options).createHikariDatabase()
         DB.setGlobalDatabase(db)
 
