@@ -11,6 +11,7 @@ import org.bukkit.event.block.BlockFertilizeEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.sql.SQLException
 import java.util.concurrent.TimeUnit
@@ -106,6 +107,29 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         } catch (e: SQLException) {
             throw RuntimeException(e)
         }
+
+        logger.info(jobsList.toString())
+    }
+
+    @EventHandler
+    fun onPlayerQuit(event: PlayerQuitEvent) {
+        try {
+            val statement = Database.dataSource.connection.createStatement()
+            for (job in jobsList) {
+                for (player in job.value) {
+                    player.value.saveToDb(statement, player.key, job.key)
+                }
+            }
+            statement.close()
+        } catch (e: SQLException) {
+            throw RuntimeException(e)
+        }
+
+        for (job in Config.jobs) {
+            jobsList[job.name.lowercase()]?.remove(event.player.uniqueId.toString())
+        }
+
+        logger.info(jobsList.toString())
     }
 
 
