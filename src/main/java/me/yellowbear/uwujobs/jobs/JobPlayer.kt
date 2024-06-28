@@ -1,10 +1,9 @@
 package me.yellowbear.uwujobs.jobs
 
-class JobPlayer(job: String, id: String, xp: Int) {
-    var job = job
-        private set
-    var id = id
-        private set
+import me.yellowbear.uwujobs.Database
+import java.sql.Statement
+
+class JobPlayer(xp: Int) {
     var xp = xp
         private set
 
@@ -13,8 +12,7 @@ class JobPlayer(job: String, id: String, xp: Int) {
         return xp
     }
 
-    fun saveToDb() {
-        // TODO: Save to database
-        // Run periodically (time set in config)
+    fun saveToDb(statement: Statement, id: String, job: String) {
+        statement.execute("INSERT INTO ${job.lowercase()} (id, xp) VALUES ('$id', $xp) ON DUPLICATE KEY UPDATE xp = $xp")
     }
 }

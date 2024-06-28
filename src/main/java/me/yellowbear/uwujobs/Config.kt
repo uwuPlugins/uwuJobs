@@ -21,7 +21,7 @@ object Config {
      * Array of all the configured jobs.
      */
     var jobs: Array<Job> = emptyArray()
-    var config: Config = Config(false, "", 0, "", "", "")
+    var config: Config = Config(false, "", 0, "", "", "", 30L)
 
     /**
      * Loads the job data from a config file.

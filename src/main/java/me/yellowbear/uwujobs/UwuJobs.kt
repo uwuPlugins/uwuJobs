@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.sql.SQLException
+import java.util.concurrent.TimeUnit
 import me.yellowbear.uwujobs.jobs.Jobs.Companion.jobs as jobsList
 
 class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
@@ -54,6 +55,25 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         } catch (e: SQLException) {
             throw RuntimeException(e)
         }
+
+        server.asyncScheduler.runAtFixedRate(this, {
+            if (server.onlinePlayers.isEmpty()) return@runAtFixedRate
+
+            try {
+                val connection = Database.dataSource.connection
+                val statement = connection.createStatement()
+                for (job in jobsList) {
+                    for (player in job.value) {
+                        player.value.saveToDb(statement, player.key, job.key)
+                    }
+                }
+                statement.close()
+                connection.close()
+                logger.info("Saved to database")
+            } catch (e: SQLException) {
+                throw RuntimeException(e)
+            }
+        }, Config.config.save_interval, Config.config.save_interval, TimeUnit.SECONDS)
     }
 
     override fun onDisable() {
@@ -72,12 +92,12 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
                     statement.execute("INSERT INTO ${job.name.lowercase()} (id, xp) VALUES ('${event.player.uniqueId}', 0)")
                     jobsList[job.name.lowercase()]?.set(
                         event.player.uniqueId.toString(),
-                        JobPlayer(job.name, event.player.uniqueId.toString(), 0)
+                        JobPlayer(0)
                     )
                 } else {
                     jobsList[job.name.lowercase()]?.set(
                         event.player.uniqueId.toString(),
-                        JobPlayer(job.name, event.player.uniqueId.toString(), row.getInt("xp"))
+                        JobPlayer(row.getInt("xp"))
                     )
                 }
 
@@ -87,6 +107,7 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
             throw RuntimeException(e)
         }
     }
+
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
