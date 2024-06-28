@@ -1,26 +1,22 @@
 package me.yellowbear.uwujobs
 
 import co.aikar.commands.PaperCommandManager
-import co.aikar.idb.DB
-import co.aikar.idb.Database
-import co.aikar.idb.DatabaseOptions
-import co.aikar.idb.PooledDatabaseOptions
 import me.yellowbear.uwujobs.commands.Jobs
+import me.yellowbear.uwujobs.jobs.JobPlayer
 import org.bukkit.command.CommandExecutor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.block.BlockBreakEvent
-import org.bukkit.event.block.BlockFertilizeEvent
-import org.bukkit.event.block.BlockPlaceEvent
-import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.sql.SQLException
+import me.yellowbear.uwujobs.jobs.Jobs.Companion.jobs as jobsList
 
 class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
     override fun onEnable() {
         Config.loadJobs()
         Config.loadConfig()
+
+        logger.info(jobsList.toString())
 
         try {
             server.pluginManager.registerEvents(UwuJobs(), this)
@@ -43,98 +39,108 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         }
 
         // Setup database
-        val options = if (Config.config.use_mysql) {
-            DatabaseOptions.builder().mysql(Config.config.mysql_username, Config.config.mysql_password, Config.config.mysql_database, "${Config.config.mysql_host}:${Config.config.mysql_port}").build()
-        } else {
-            DatabaseOptions.builder().sqlite("${this.dataFolder}/uwu.db").build()
-        }
-        val db: Database = PooledDatabaseOptions.builder().options(options).createHikariDatabase()
-        DB.setGlobalDatabase(db)
+        Database.connect()
 
         try {
+            val statement = Database.dataSource.connection.createStatement()
             for (job in Config.jobs) {
-                DB.executeInsert("CREATE TABLE IF NOT EXISTS ${job.name.lowercase()} (id TEXT UNIQUE, xp INT)")
+                statement.execute("CREATE TABLE IF NOT EXISTS ${job.name.lowercase()} (id VARCHAR(36) PRIMARY KEY, xp INT)")
             }
+            statement.close()
         } catch (e: SQLException) {
             throw RuntimeException(e)
         }
     }
 
     override fun onDisable() {
-        DB.close()
+        Database.dataSource.close()
         // Plugin shutdown logic
     }
 
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
-        for (job in Config.jobs) {
-            try {
-                if (Config.config.use_mysql) {
-                    DB.executeInsert("INSERT IGNORE INTO ${job.name.lowercase()} (id, xp) VALUES ('${event.player.uniqueId}', 0)")
+        try {
+            val statement = Database.dataSource.connection.createStatement()
+            for (job in Config.jobs) {
+                val row =
+                    statement.executeQuery("SELECT xp FROM ${job.name.lowercase()} WHERE id = '${event.player.uniqueId}'")
+                if (!row.next()) {
+                    statement.execute("INSERT INTO ${job.name.lowercase()} (id, xp) VALUES ('${event.player.uniqueId}', 0)")
+                    jobsList[job.name.lowercase()]?.set(
+                        event.player.uniqueId.toString(),
+                        JobPlayer(job.name, event.player.uniqueId.toString(), 0)
+                    )
                 } else {
-                    DB.executeInsert("INSERT OR IGNORE INTO ${job.name.lowercase()} (id, xp) VALUES ('${event.player.uniqueId}', 0)")
+                    jobsList[job.name.lowercase()]?.set(
+                        event.player.uniqueId.toString(),
+                        JobPlayer(job.name, event.player.uniqueId.toString(), row.getInt("xp"))
+                    )
                 }
-            } catch (e: SQLException) {
-                throw RuntimeException(e)
+
             }
+            statement.close()
+
+            logger.info(jobsList.toString())
+        } catch (e: SQLException) {
+            throw RuntimeException(e)
         }
     }
 
-    @EventHandler
-    fun onBlockBreak(event: BlockBreakEvent) {
-        //TODO: Check for crop age
-        for (job in Config.jobs) {
-            for (reward in job.rewards) {
-                if (reward.brokenBlocks == null) continue
-                for (block in reward.brokenBlocks) {
-                    if (block == event.block.type.name) {
-                        Level.awardXp(event.player, reward.amount, job)
-                    }
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    fun onBlockPlace(event: BlockPlaceEvent) {
-        for (job in Config.jobs) {
-            for (reward in job.rewards) {
-                if (reward.placedBlocks == null) continue
-                for (block in reward.placedBlocks) {
-                    if (block == event.block.type.name) {
-                        Level.awardXp(event.player, reward.amount, job)
-                    }
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    fun onEntityDeath(event: EntityDeathEvent) {
-        for (job in Config.jobs) {
-            for (reward in job.rewards) {
-                if (reward.killedEntities == null) continue
-                for (entity in reward.killedEntities) {
-                    if (entity == event.entity.type.name) {
-                        Level.awardXp(event.entity.killer, reward.amount, job)
-                    }
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    fun onFertilize(event: BlockFertilizeEvent) {
-        if (event.player == null) return
-        for (job in Config.jobs) {
-            for (reward in job.rewards) {
-                if (reward.fertilizedBlocks == null) continue
-                for (block in reward.fertilizedBlocks) {
-                    if (block == event.block.type.name) {
-                        Level.awardXp(event.player, reward.amount, job)
-                    }
-                }
-            }
-        }
-    }
+//    @EventHandler
+//    fun onBlockBreak(event: BlockBreakEvent) {
+//        //TODO: Check for crop age
+//        for (job in Config.jobs) {
+//            for (reward in job.rewards) {
+//                if (reward.brokenBlocks == null) continue
+//                for (block in reward.brokenBlocks) {
+//                    if (block == event.block.type.name) {
+//                        Level.awardXp(event.player, reward.amount, job)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    @EventHandler
+//    fun onBlockPlace(event: BlockPlaceEvent) {
+//        for (job in Config.jobs) {
+//            for (reward in job.rewards) {
+//                if (reward.placedBlocks == null) continue
+//                for (block in reward.placedBlocks) {
+//                    if (block == event.block.type.name) {
+//                        Level.awardXp(event.player, reward.amount, job)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    @EventHandler
+//    fun onEntityDeath(event: EntityDeathEvent) {
+//        for (job in Config.jobs) {
+//            for (reward in job.rewards) {
+//                if (reward.killedEntities == null) continue
+//                for (entity in reward.killedEntities) {
+//                    if (entity == event.entity.type.name) {
+//                        Level.awardXp(event.entity.killer, reward.amount, job)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    @EventHandler
+//    fun onFertilize(event: BlockFertilizeEvent) {
+//        if (event.player == null) return
+//        for (job in Config.jobs) {
+//            for (reward in job.rewards) {
+//                if (reward.fertilizedBlocks == null) continue
+//                for (block in reward.fertilizedBlocks) {
+//                    if (block == event.block.type.name) {
+//                        Level.awardXp(event.player, reward.amount, job)
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
