@@ -6,6 +6,10 @@ import me.yellowbear.uwujobs.jobs.JobPlayer
 import org.bukkit.command.CommandExecutor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockFertilizeEvent
+import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.sql.SQLException
@@ -79,68 +83,96 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
 
             }
             statement.close()
-
-            logger.info(jobsList.toString())
         } catch (e: SQLException) {
             throw RuntimeException(e)
         }
     }
 
-//    @EventHandler
-//    fun onBlockBreak(event: BlockBreakEvent) {
-//        //TODO: Check for crop age
-//        for (job in Config.jobs) {
-//            for (reward in job.rewards) {
-//                if (reward.brokenBlocks == null) continue
-//                for (block in reward.brokenBlocks) {
-//                    if (block == event.block.type.name) {
-//                        Level.awardXp(event.player, reward.amount, job)
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    @EventHandler
-//    fun onBlockPlace(event: BlockPlaceEvent) {
-//        for (job in Config.jobs) {
-//            for (reward in job.rewards) {
-//                if (reward.placedBlocks == null) continue
-//                for (block in reward.placedBlocks) {
-//                    if (block == event.block.type.name) {
-//                        Level.awardXp(event.player, reward.amount, job)
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    @EventHandler
-//    fun onEntityDeath(event: EntityDeathEvent) {
-//        for (job in Config.jobs) {
-//            for (reward in job.rewards) {
-//                if (reward.killedEntities == null) continue
-//                for (entity in reward.killedEntities) {
-//                    if (entity == event.entity.type.name) {
-//                        Level.awardXp(event.entity.killer, reward.amount, job)
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    @EventHandler
-//    fun onFertilize(event: BlockFertilizeEvent) {
-//        if (event.player == null) return
-//        for (job in Config.jobs) {
-//            for (reward in job.rewards) {
-//                if (reward.fertilizedBlocks == null) continue
-//                for (block in reward.fertilizedBlocks) {
-//                    if (block == event.block.type.name) {
-//                        Level.awardXp(event.player, reward.amount, job)
-//                    }
-//                }
-//            }
-//        }
-//    }
+    @EventHandler
+    fun onBlockBreak(event: BlockBreakEvent) {
+        val player = event.player
+        //TODO: Check for crop age
+
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.brokenBlocks == null) continue
+                for (block in reward.brokenBlocks) {
+                    if (block == event.block.type.name) {
+                        val jobPlayer: JobPlayer? = jobsList[job.name.lowercase()]!![player.uniqueId.toString()]
+                        if (jobPlayer == null) {
+                            logger.warning("Player ${player.name} has no jobPlayer for job ${job.name}")
+                            return
+                        }
+                        Level.awardXp(event.player, jobPlayer, reward.amount, job)
+                    }
+                }
+            }
+        }
+
+    }
+
+    @EventHandler
+    fun onBlockPlace(event: BlockPlaceEvent) {
+        val player = event.player
+
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.placedBlocks == null) continue
+                for (block in reward.placedBlocks) {
+                    if (block == event.block.type.name) {
+                        val jobPlayer: JobPlayer? = jobsList[job.name.lowercase()]!![player.uniqueId.toString()]
+                        if (jobPlayer == null) {
+                            logger.warning("Player ${player.name} has no jobPlayer for job ${job.name}")
+                            return
+                        }
+                        Level.awardXp(event.player, jobPlayer, reward.amount, job)
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    fun onEntityDeath(event: EntityDeathEvent) {
+        val player = event.entity.killer
+        if (player == null) return
+
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.killedEntities == null) continue
+                for (entity in reward.killedEntities) {
+                    if (entity == event.entity.type.name) {
+                        val jobPlayer: JobPlayer? = jobsList[job.name.lowercase()]!![player.uniqueId.toString()]
+                        if (jobPlayer == null) {
+                            logger.warning("Player ${event.entity.killer} has no jobPlayer for job ${job.name}")
+                            return
+                        }
+                        Level.awardXp(player, jobPlayer, reward.amount, job)
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    fun onFertilize(event: BlockFertilizeEvent) {
+        val player = event.player
+        if (player == null) return
+
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.fertilizedBlocks == null) continue
+                for (block in reward.fertilizedBlocks) {
+                    if (block == event.block.type.name) {
+                        val jobPlayer: JobPlayer? = jobsList[job.name.lowercase()]!![player.uniqueId.toString()]
+                        if (jobPlayer == null) {
+                            logger.warning("Player ${player.name} has no jobPlayer for job ${job.name}")
+                            return
+                        }
+                        Level.awardXp(player, jobPlayer, reward.amount, job)
+                    }
+                }
+            }
+        }
+    }
 }
