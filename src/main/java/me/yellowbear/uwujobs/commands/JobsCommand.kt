@@ -102,7 +102,11 @@ class Jobs : BaseCommand() { //Inherit basic command properties
             // Check if the jobs argument is "all"
             if (job.equals("all", ignoreCase = true)) {
                 val queryBuilder = StringBuilder()
-                queryBuilder.append("SELECT * FROM ( SELECT id, SUM(xp) AS xp FROM (")
+                if (Config.config.use_mysql) {
+                    queryBuilder.append("SELECT * FROM ( SELECT id, SUM(xp) AS xp FROM (")
+                } else {
+                    queryBuilder.append("SELECT id, SUM(xp) AS xp FROM (")
+                }
 
                 for (jobEnum in Config.jobs) {
                     queryBuilder.append("SELECT id, xp FROM ${jobEnum.name.lowercase()} WHERE NOT xp = 0 UNION ALL ")

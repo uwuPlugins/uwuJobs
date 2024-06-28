@@ -1,6 +1,6 @@
 package me.yellowbear.uwujobs.jobs
 
-import me.yellowbear.uwujobs.Database
+import me.yellowbear.uwujobs.Config
 import java.sql.Statement
 
 class JobPlayer(xp: Int) {
@@ -13,6 +13,10 @@ class JobPlayer(xp: Int) {
     }
 
     fun saveToDb(statement: Statement, id: String, job: String) {
-        statement.execute("INSERT INTO ${job.lowercase()} (id, xp) VALUES ('$id', $xp) ON DUPLICATE KEY UPDATE xp = $xp")
+        if (Config.config.use_mysql) {
+            statement.execute("INSERT INTO ${job.lowercase()} (id, xp) VALUES ('$id', $xp) ON DUPLICATE KEY UPDATE xp = $xp")
+        } else {
+            statement.execute("INSERT OR REPLACE INTO ${job.lowercase()} (id, xp) VALUES ('$id', $xp)")
+        }
     }
 }
