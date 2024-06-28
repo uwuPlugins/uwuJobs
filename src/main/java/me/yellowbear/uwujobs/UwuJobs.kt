@@ -70,7 +70,6 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
                 }
                 statement.close()
                 connection.close()
-                logger.info("Saved to database")
             } catch (e: SQLException) {
                 throw RuntimeException(e)
             }
@@ -107,8 +106,6 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         } catch (e: SQLException) {
             throw RuntimeException(e)
         }
-
-        logger.info(jobsList.toString())
     }
 
     @EventHandler
@@ -128,8 +125,6 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         for (job in Config.jobs) {
             jobsList[job.name.lowercase()]?.remove(event.player.uniqueId.toString())
         }
-
-        logger.info(jobsList.toString())
     }
 
 

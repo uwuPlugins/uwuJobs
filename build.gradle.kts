@@ -22,7 +22,6 @@ repositories {
 dependencies {
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     implementation("com.zaxxer:HikariCP:5.1.0")
-    implementation("co.aikar:idb-core:1.0.0-SNAPSHOT")
     implementation("net.kyori:adventure-api:4.17.0")
     implementation("com.charleskorn.kaml:kaml:0.60.0")
     api(libs.org.jetbrains.kotlin.kotlin.stdlib.jdk8)

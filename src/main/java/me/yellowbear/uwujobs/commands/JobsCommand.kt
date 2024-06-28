@@ -1,15 +1,9 @@
 package me.yellowbear.uwujobs.commands
 
 import co.aikar.commands.BaseCommand
-import co.aikar.commands.annotation.CommandAlias
-import co.aikar.commands.annotation.CommandCompletion
-import co.aikar.commands.annotation.Default
-import co.aikar.commands.annotation.Description
-import co.aikar.commands.annotation.Subcommand
-import co.aikar.commands.annotation.Syntax
-import co.aikar.idb.DB
-import co.aikar.idb.DbRow
+import co.aikar.commands.annotation.*
 import me.yellowbear.uwujobs.Config
+import me.yellowbear.uwujobs.Database
 import me.yellowbear.uwujobs.UwuJobs
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -17,6 +11,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.*
 
@@ -46,14 +41,34 @@ class Jobs : BaseCommand() { //Inherit basic command properties
         ) // Create a plugin info string and deserialize it into a text component.
         player.sendMessage(parsed) //Send the deserialized message (plugin info).
 
-        for (job in Config.jobs) { // For every existing job
-            val row = DB.getFirstRow("SELECT xp FROM ${job.name.lowercase()} WHERE id = '${player.uniqueId}'") //Get player's experience from the database
-            parsed = msg.deserialize(
-                "<gray>You have <xp> XP in proffesion <job>",
-                Placeholder.component("xp", Component.text(row.getInt("xp"), NamedTextColor.GOLD)),
-                Placeholder.component("job", Component.text(job.name, NamedTextColor.GOLD))
-            ) //Insert the value into a string and deserialize it to a text component
-            player.sendMessage(parsed) //Send the deserialized message (job stats).
+        try {
+            val connection = Database.dataSource.connection
+            val statement = connection.createStatement()
+            for (job in Config.jobs) { // For every existing job
+                val row =
+                    statement.executeQuery("SELECT xp FROM ${job.name.lowercase()} WHERE id = '${player.uniqueId}'")
+                if (row.next()) {
+                    val xp = row.getInt("xp")
+                    parsed = msg.deserialize(
+                        "<gray>You have <xp> XP in proffesion <job>",
+                        Placeholder.component("xp", Component.text(xp, NamedTextColor.GOLD)),
+                        Placeholder.component("job", Component.text(job.name, NamedTextColor.GOLD))
+                    ) //Insert the value into a string and deserialize it to a text component
+                    player.sendMessage(parsed) //Send the deserialized message (job stats).
+                } else {
+                    player.sendMessage(
+                        msg.deserialize(
+                            "<gray>You have <xp> XP in proffesion <job>",
+                            Placeholder.component("xp", Component.text(0, NamedTextColor.GOLD)),
+                            Placeholder.component("job", Component.text(job.name, NamedTextColor.GOLD))
+                        )
+                    )
+                }
+            }
+            statement.close()
+            connection.close()
+        } catch (e: SQLException) {
+            throw RuntimeException(e)
         }
     }
 
@@ -79,7 +94,10 @@ class Jobs : BaseCommand() { //Inherit basic command properties
                 return
             }
 
-            val rows: List<DbRow>
+            val rows: ResultSet
+
+            val connection = Database.dataSource.connection
+            val statement = connection.createStatement()
 
             // Check if the jobs argument is "all"
             if (job.equals("all", ignoreCase = true)) {
@@ -97,9 +115,9 @@ class Jobs : BaseCommand() { //Inherit basic command properties
                     queryBuilder.append(") GROUP BY id ORDER BY xp DESC LIMIT 5")
                 }
 
-                rows = DB.getResults(queryBuilder.toString())
+                rows = statement.executeQuery(queryBuilder.toString())
             } else {
-                rows = DB.getResults("SELECT id, xp FROM ${job.lowercase()} WHERE NOT xp = 0 ORDER BY xp DESC LIMIT 5")
+                rows = statement.executeQuery("SELECT * FROM ${job.lowercase()} ORDER BY xp DESC LIMIT 5")
             }
 
             // Send message heading
@@ -111,9 +129,9 @@ class Jobs : BaseCommand() { //Inherit basic command properties
             )
             // Process all the values extracted from the database
             var i = 1
-            for (row in rows) {
+            while (rows.next()) {
                 val playerLeaderboard = Bukkit.getOfflinePlayer(
-                    UUID.fromString(row.getString("id"))
+                    UUID.fromString(rows.getString("id"))
                 )
                 val playerName = playerLeaderboard.name
 
@@ -121,11 +139,14 @@ class Jobs : BaseCommand() { //Inherit basic command properties
                     "<gray><rank>. <player>: xp <level>",
                     Placeholder.component("rank", Component.text(i, NamedTextColor.GOLD)),
                     Placeholder.component("player", Component.text(playerName!!, NamedTextColor.WHITE)),
-                    Placeholder.component("level", Component.text(row.getInt("xp"), NamedTextColor.GOLD))
+                    Placeholder.component("level", Component.text(rows.getInt("xp"), NamedTextColor.GOLD))
                 )
                 player.sendMessage(parsed)
                 i++
             }
+
+            statement.close()
+            connection.close()
         } catch (e: SQLException) {
             throw RuntimeException(e)
         }
