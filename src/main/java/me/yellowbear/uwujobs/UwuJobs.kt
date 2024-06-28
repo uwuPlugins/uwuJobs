@@ -22,8 +22,6 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         Config.loadJobs()
         Config.loadConfig()
 
-        logger.info(jobsList.toString())
-
         try {
             server.pluginManager.registerEvents(UwuJobs(), this)
         } catch (e: Exception) {
@@ -59,26 +57,30 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
 
         server.asyncScheduler.runAtFixedRate(this, {
             if (server.onlinePlayers.isEmpty()) return@runAtFixedRate
-
-            try {
-                val connection = Database.dataSource.connection
-                val statement = connection.createStatement()
-                for (job in jobsList) {
-                    for (player in job.value) {
-                        player.value.saveToDb(statement, player.key, job.key)
-                    }
-                }
-                statement.close()
-                connection.close()
-            } catch (e: SQLException) {
-                throw RuntimeException(e)
-            }
+            save()
         }, Config.config.save_interval, Config.config.save_interval, TimeUnit.SECONDS)
     }
 
     override fun onDisable() {
+        save()
         Database.dataSource.close()
         // Plugin shutdown logic
+    }
+
+    private fun save() {
+        try {
+            val connection = Database.dataSource.connection
+            val statement = connection.createStatement()
+            for (job in jobsList) {
+                for (player in job.value) {
+                    player.value.saveToDb(statement, player.key, job.key)
+                }
+            }
+            statement.close()
+            connection.close()
+        } catch (e: SQLException) {
+            throw RuntimeException(e)
+        }
     }
 
     @EventHandler
