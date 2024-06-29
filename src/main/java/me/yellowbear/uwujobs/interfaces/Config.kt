@@ -16,9 +16,10 @@ data class Config(
     val mysql_username: String,
     val mysql_password: String,
     val mysql_database: String,
+    val save_interval: Long
 )
 
 @Serializable
 data class JobsConfig(
-    val jobs: Array<Job>
+    val jobs: Array<Job>,
 )

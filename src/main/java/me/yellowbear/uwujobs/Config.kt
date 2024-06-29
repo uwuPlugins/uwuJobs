@@ -1,9 +1,12 @@
 package me.yellowbear.uwujobs
 
 import com.charleskorn.kaml.Yaml
+import me.yellowbear.uwujobs.Config.jobs
+import me.yellowbear.uwujobs.Config.loadJobs
 import me.yellowbear.uwujobs.interfaces.Config
 import me.yellowbear.uwujobs.interfaces.JobsConfig
 import me.yellowbear.uwujobs.jobs.Job
+import me.yellowbear.uwujobs.jobs.Jobs
 import java.io.File
 
 /**
@@ -18,7 +21,7 @@ object Config {
      * Array of all the configured jobs.
      */
     var jobs: Array<Job> = emptyArray()
-    var config: Config = Config(false, "", 0, "", "", "")
+    var config: Config = Config(false, "", 0, "", "", "", 30L)
 
     /**
      * Loads the job data from a config file.
@@ -29,6 +32,11 @@ object Config {
         val jobsYaml = File(UwuJobs().dataFolder, "jobs.yml").readText()
         val config = Yaml.default.decodeFromString(JobsConfig.serializer(), jobsYaml)
         jobs = config.jobs
+
+        for (job in jobs) {
+            Jobs.jobs[job.name.lowercase()] = HashMap()
+        }
+
         UwuJobs().logger.info("Loaded ${jobs.size} jobs")
     }
 

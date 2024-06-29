@@ -1,7 +1,7 @@
 package me.yellowbear.uwujobs
 
-import co.aikar.idb.DB
 import me.yellowbear.uwujobs.jobs.Job
+import me.yellowbear.uwujobs.jobs.JobPlayer
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
@@ -24,18 +24,9 @@ object Level {
      * @param amount Amount of XP the target player is to receive.
      * @param job The target job to which the XP will be awarded.
      */
-    fun awardXp(player: Player?, amount: Int, job: Job) {
-        if (player == null) return;
+    fun awardXp(player: Player, jobPlayer: JobPlayer, amount: Int, job: Job) {
         val msg = MiniMessage.miniMessage()
-        var xp: Int
-        try {
-            val row = DB.getFirstRow("SELECT xp FROM ${job.name.lowercase()} WHERE id = '${player.uniqueId}'")
-            xp = row.getInt("xp")
-            xp += amount
-            DB.executeUpdate("UPDATE ${job.name.lowercase()} SET xp = ${xp} WHERE id = '${player.uniqueId}'")
-        } catch (e: SQLException) {
-            throw RuntimeException(e)
-        }
+        val xp = jobPlayer.addXp(amount)
         val parsed = msg.deserialize(
             "<gray><job>: <xp> XP",
             Placeholder.component("job", Component.text(job.name)),
