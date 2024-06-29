@@ -46,11 +46,14 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         Database.connect()
 
         try {
-            val statement = Database.dataSource.connection.createStatement()
+            val connection = Database.dataSource.connection
+            val statement = connection.createStatement()
             for (job in Config.jobs) {
-                statement.execute("CREATE TABLE IF NOT EXISTS ${job.name.lowercase()} (id VARCHAR(36) PRIMARY KEY, xp INT)")
+                statement.addBatch("CREATE TABLE IF NOT EXISTS ${job.name.lowercase()} (id VARCHAR(36) PRIMARY KEY, xp INT)")
             }
+            statement.executeBatch()
             statement.close()
+            connection.close()
         } catch (e: SQLException) {
             throw RuntimeException(e)
         }
