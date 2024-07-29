@@ -1,18 +1,8 @@
 package me.yellowbear.uwujobs
 
-import co.aikar.commands.BukkitCommandCompletionContext
 import co.aikar.commands.PaperCommandManager
-import co.aikar.idb.DB
-import co.aikar.idb.Database
-import co.aikar.idb.DatabaseOptions
-import co.aikar.idb.PooledDatabaseOptions
-import me.yellowbear.uwujobs.commands.JobsCommand
-import me.yellowbear.uwujobs.jobs.BlockBreak
-import me.yellowbear.uwujobs.jobs.BlockPlace
-import me.yellowbear.uwujobs.jobs.MobKill
-import me.yellowbear.uwujobs.services.ConfigService
-import me.yellowbear.uwujobs.services.UpdaterService
-import me.yellowbear.uwujobs.services.UpdaterService.checkForUpdates
+import me.yellowbear.uwujobs.commands.Jobs
+import me.yellowbear.uwujobs.jobs.JobPlayer
 import org.bukkit.command.CommandExecutor
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -21,25 +11,16 @@ import org.bukkit.event.block.BlockFertilizeEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
-import java.io.IOException
 import java.sql.SQLException
-import java.util.*
+import java.util.concurrent.TimeUnit
+import me.yellowbear.uwujobs.jobs.Jobs.Companion.jobs as jobsList
 
 class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
     override fun onEnable() {
-        try {
-            ConfigService.registerCustomConfig("blocks.yml")
-            ConfigService.registerCustomConfig("default")
-        } catch (e: IOException) {
-            throw RuntimeException(e)
-        }
-        ConfigService.registerService(BlockSets(), "blocks.yml")
-        ConfigService.registerService(UpdaterService, "default")
-        ConfigService.loadConfigs()
-
-        println("up to date?")
-        println(this.checkForUpdates())
+        Config.loadJobs()
+        Config.loadConfig()
 
         try {
             server.pluginManager.registerEvents(UwuJobs(), this)
@@ -50,123 +31,192 @@ class UwuJobs : JavaPlugin(), Listener, CommandExecutor {
         // Setup ACF
         val manager = PaperCommandManager(this)
 
+        manager.registerCommand(Jobs())
+
         manager.commandCompletions.registerCompletion("jobs") {
             val jobs: MutableSet<String> = HashSet()
-            for (job in BlockBreak.entries) {
-                jobs.add(job.name.lowercase(Locale.getDefault()))
+            for (job in Config.jobs) {
+                jobs.add(job.name.lowercase())
             }
             jobs.add("all")
             jobs
         }
 
-        manager.registerCommand(JobsCommand())
-
         // Setup database
-        val options = DatabaseOptions.builder().sqlite("plugins/uwuJobs/uwu.db").build()
-        val db: Database = PooledDatabaseOptions.builder().options(options).createHikariDatabase()
-        DB.setGlobalDatabase(db)
+        Database.connect()
 
         try {
-            for (job in BlockBreak.entries) {
-                DB.executeInsert(
-                    String.format(
-                        "CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)",
-                        job.name.lowercase(Locale.getDefault())
-                    )
-                )
+            val connection = Database.dataSource.connection
+            val statement = connection.createStatement()
+            for (job in Config.jobs) {
+                statement.addBatch("CREATE TABLE IF NOT EXISTS ${job.name.lowercase()} (id VARCHAR(36) PRIMARY KEY, xp INT)")
             }
-            for (job in BlockPlace.entries) {
-                DB.executeInsert(
-                    String.format(
-                        "CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)",
-                        job.name.lowercase(Locale.getDefault())
-                    )
-                )
+            statement.executeBatch()
+            statement.close()
+            connection.close()
+        } catch (e: SQLException) {
+            throw RuntimeException(e)
+        }
+
+        server.asyncScheduler.runAtFixedRate(this, {
+            if (server.onlinePlayers.isEmpty()) return@runAtFixedRate
+            save()
+        }, Config.config.save_interval, Config.config.save_interval, TimeUnit.SECONDS)
+    }
+
+    override fun onDisable() {
+        save()
+        Database.dataSource.close()
+        // Plugin shutdown logic
+    }
+
+    private fun save() {
+        try {
+            val connection = Database.dataSource.connection
+            val statement = connection.createStatement()
+            for (job in jobsList) {
+                for (player in job.value) {
+                    player.value.saveToDb(statement, player.key, job.key)
+                }
             }
-            for (job in MobKill.entries) {
-                DB.executeInsert(
-                    String.format(
-                        "CREATE TABLE IF NOT EXISTS %s (id TEXT UNIQUE, xp INT, next INT)",
-                        job.name.lowercase(Locale.getDefault())
-                    )
-                )
-            }
+            statement.close()
+            connection.close()
         } catch (e: SQLException) {
             throw RuntimeException(e)
         }
     }
 
-    override fun onDisable() {
-        DB.close()
-        // Plugin shutdown logic
-    }
-
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
-        for (job in BlockBreak.entries) {
-            try {
-                DB.executeInsert(
-                    String.format(
-                        "INSERT INTO %s (id, xp) VALUES ('%s', %s)",
-                        job.name.lowercase(Locale.getDefault()),
-                        event.player.uniqueId,
-                        1
+        try {
+            val statement = Database.dataSource.connection.createStatement()
+            for (job in Config.jobs) {
+                val row =
+                    statement.executeQuery("SELECT xp FROM ${job.name.lowercase()} WHERE id = '${event.player.uniqueId}'")
+                if (!row.next()) {
+                    statement.execute("INSERT INTO ${job.name.lowercase()} (id, xp) VALUES ('${event.player.uniqueId}', 0)")
+                    jobsList[job.name.lowercase()]?.set(
+                        event.player.uniqueId.toString(),
+                        JobPlayer(0)
                     )
-                )
-            } catch (e: SQLException) {
-                // player already exists
-            }
-        }
-        for (job in BlockPlace.entries) {
-            try {
-                DB.executeInsert(
-                    String.format(
-                        "INSERT INTO %s (id, xp) VALUES ('%s', %s)",
-                        job.name.lowercase(Locale.getDefault()),
-                        event.player.uniqueId,
-                        1
+                } else {
+                    jobsList[job.name.lowercase()]?.set(
+                        event.player.uniqueId.toString(),
+                        JobPlayer(row.getInt("xp"))
                     )
-                )
-            } catch (e: SQLException) {
-                // player already exists
+                }
+
             }
-        }
-        for (job in MobKill.entries) {
-            try {
-                DB.executeInsert(
-                    String.format(
-                        "INSERT INTO %s (id, xp) VALUES ('%s', %s)",
-                        job.name.lowercase(Locale.getDefault()),
-                        event.player.uniqueId,
-                        1
-                    )
-                )
-            } catch (e: SQLException) {
-                // player already exists
-            }
+            statement.close()
+        } catch (e: SQLException) {
+            throw RuntimeException(e)
         }
     }
 
     @EventHandler
-    @Throws(IOException::class)
-    fun onBlockMined(event: BlockBreakEvent) {
-        Jobs.handleJobEvent(event, BlockSets.breakJobsMap)
+    fun onPlayerQuit(event: PlayerQuitEvent) {
+        try {
+            val statement = Database.dataSource.connection.createStatement()
+            for (job in jobsList) {
+                for (player in job.value) {
+                    player.value.saveToDb(statement, player.key, job.key)
+                }
+            }
+            statement.close()
+        } catch (e: SQLException) {
+            throw RuntimeException(e)
+        }
+
+        for (job in Config.jobs) {
+            jobsList[job.name.lowercase()]?.remove(event.player.uniqueId.toString())
+        }
     }
 
     @EventHandler
-    @Throws(IOException::class)
+    fun onBlockBreak(event: BlockBreakEvent) {
+        val player = event.player
+        //TODO: Check for crop age
+
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.brokenBlocks == null) continue
+                for (block in reward.brokenBlocks) {
+                    if (block == event.block.type.name) {
+                        val jobPlayer: JobPlayer? = jobsList[job.name.lowercase()]!![player.uniqueId.toString()]
+                        if (jobPlayer == null) {
+                            logger.warning("Player ${player.name} has no jobPlayer for job ${job.name}")
+                            return
+                        }
+                        Level.awardXp(event.player, jobPlayer, reward.amount, job)
+                    }
+                }
+            }
+        }
+
+    }
+
+    @EventHandler
     fun onBlockPlace(event: BlockPlaceEvent) {
-        Jobs.handleJobEvent(event, BlockSets.placeJobsMap)
+        val player = event.player
+
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.placedBlocks == null) continue
+                for (block in reward.placedBlocks) {
+                    if (block == event.block.type.name) {
+                        val jobPlayer: JobPlayer? = jobsList[job.name.lowercase()]!![player.uniqueId.toString()]
+                        if (jobPlayer == null) {
+                            logger.warning("Player ${player.name} has no jobPlayer for job ${job.name}")
+                            return
+                        }
+                        Level.awardXp(event.player, jobPlayer, reward.amount, job)
+                    }
+                }
+            }
+        }
     }
 
     @EventHandler
-    @Throws(IOException::class)
     fun onEntityDeath(event: EntityDeathEvent) {
-        Jobs.handleJobEvent(event, BlockSets.killJobsMap)
+        val player = event.entity.killer
+        if (player == null) return
+
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.killedEntities == null) continue
+                for (entity in reward.killedEntities) {
+                    if (entity == event.entity.type.name) {
+                        val jobPlayer: JobPlayer? = jobsList[job.name.lowercase()]!![player.uniqueId.toString()]
+                        if (jobPlayer == null) {
+                            logger.warning("Player ${event.entity.killer} has no jobPlayer for job ${job.name}")
+                            return
+                        }
+                        Level.awardXp(player, jobPlayer, reward.amount, job)
+                    }
+                }
+            }
+        }
     }
 
     @EventHandler
     fun onFertilize(event: BlockFertilizeEvent) {
-        Jobs.handleJobEvent(event)
+        val player = event.player
+        if (player == null) return
+
+        for (job in Config.jobs) {
+            for (reward in job.rewards) {
+                if (reward.fertilizedBlocks == null) continue
+                for (block in reward.fertilizedBlocks) {
+                    if (block == event.block.type.name) {
+                        val jobPlayer: JobPlayer? = jobsList[job.name.lowercase()]!![player.uniqueId.toString()]
+                        if (jobPlayer == null) {
+                            logger.warning("Player ${player.name} has no jobPlayer for job ${job.name}")
+                            return
+                        }
+                        Level.awardXp(player, jobPlayer, reward.amount, job)
+                    }
+                }
+            }
+        }
     }
 }
